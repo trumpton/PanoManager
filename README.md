@@ -1,0 +1,2 @@
+# PanoManager
+Panorama Manager
