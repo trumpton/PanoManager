@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
+<head>
+        <title>$TITLE$</title>
+        <meta charset="utf-8" />
+	<style>
+		html { height: 100%; }
+		body { height: 100%; margin:0 auto; padding:0; 
+		    position: relative; }
+		#tourdiv { position: relative; overflow:hidden;
+		     margin-top: 0px; margin-left: 0px ; margin-right: 0px ;
+		     margin-bottom: 0px; background-image:none; width:100%;
+		     height:100%; z-index: 100 ; background-color: gray; }
+	</style>
+        <link rel="stylesheet" href="pannellum/pannellum.css"/>
+        <script type="text/javascript" src="pannellum/pannellum.js"></script>
+</head>
+<body>	
+	<div id="tourdiv"><!-- pannellum tour goes here --></div>
+	<script type="text/javascript" src="tour.js"></script>
+	<script type="text/javascript"><!--
+		window.onload = function() { 
+			pannellum.viewer('tourdiv', tourdata) ; }
+	--></script>
+</body>
+</html>
+

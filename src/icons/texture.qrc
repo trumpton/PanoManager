@@ -1,0 +1,32 @@
+<RCC>
+    <qresource prefix="/">
+        <file>texture/door-black.png</file>
+        <file>texture/door-white.png</file>
+        <file>texture/info-black.png</file>
+        <file>texture/info-white.png</file>
+        <file>texture/link0-black.png</file>
+        <file>texture/link0-white.png</file>
+        <file>texture/media-black.png</file>
+        <file>texture/media-white.png</file>
+        <file>texture/music-black.png</file>
+        <file>texture/music-white.png</file>
+        <file>texture/link45-black.png</file>
+        <file>texture/link45-white.png</file>
+        <file>texture/crosshairs-black.png</file>
+        <file>texture/crosshairs-red.png</file>
+        <file>texture/compass.png</file>
+        <file>texture/selected.png</file>
+        <file>texture/menu-exit.png</file>
+        <file>texture/menu-info.png</file>
+        <file>texture/menu-link.png</file>
+        <file>texture/menu-media.png</file>
+        <file>texture/menu-music.png</file>
+        <file>texture/icon-add.png</file>
+        <file>texture/icon-delete.png</file>
+        <file>texture/icon-go.png</file>
+        <file>texture/icon-north.png</file>
+        <file>texture/icon-edit.png</file>
+        <file>texture/icon-turn.png</file>
+        <file>texture/icon-move.png</file>
+    </qresource>
+</RCC>
