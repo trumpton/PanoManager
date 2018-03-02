@@ -1,7 +1,7 @@
 # PanoManager - Panorama Manager
 
 This is a tool, built with QT that is used to manage panorama tours.
-It loads equirectangular images, creates cube faces (which can then be annotated), and allows the interactive generation of tours.
+It loads equirectangular images, creates cube faces (which can then be annotated), and allows the interactive generation of tours. See the user manual, which can be found at http://www.trumpton.uk/panomanager. 
 
 ## Overview
 
@@ -21,10 +21,15 @@ The following Licences apply:
 * QT: GPL / LGPL
 * Pannellum: MIT
 * Marzipano: Apache
+* DejaVu: Copyright
 
 ## Limitations and Caveats
 
 The PanoManager program is provided without warranty.  I am not a software engineer, and don't provide any warranty as to the quality, performance or maintainability of this code.  Please feel free to copy and expand the program, but ensure that all authors are appropriately recognised.
+
+## Thankyou
+
+If you want to say thankyou for the program, please consider making a donation to Guide Dogs for the Blind here: https://www.justgiving.com/fundraising/panomanager18
 
 ## Author
 
