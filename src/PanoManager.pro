@@ -55,14 +55,15 @@ HEADERS += \
         dialogs/about/aboutdialog.h \
         dialogs/webserver/webserver.h \
         widgets/sceneview/sceneviewwidget.h \
-    errors/pmerrors.h
+    errors/pmerrors.h \
+    version.h
 
 FORMS += \
         mainwindow.ui \
         dialogs/progress/progressdialog.ui \
         dialogs/tourproperties/tourpropertiesdialog.ui \
-        dialogs/about/aboutdialog.ui \
-        dialogs/webserver/webserver.ui
+        dialogs/webserver/webserver.ui \
+    dialogs/about/aboutdialog.ui
 
 RESOURCES += \
         widgets/sceneview/shaders.qrc \

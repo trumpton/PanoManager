@@ -75,11 +75,9 @@ private slots:
     void on_action_ExportMarzipano_triggered();
     void on_action_Properties_triggered();
     void on_nodeUrl_lineEdit_textEdited(const QString &arg1);
-    void on_action_Licenses_triggered();
-
     void on_action_Web_Server_triggered();
-
     void on_actionE_xit_triggered();
+    void on_action_About_triggered();
 
 private:
     WebServer webserver ;

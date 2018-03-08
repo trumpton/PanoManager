@@ -28,6 +28,11 @@ AboutDialog::AboutDialog(QWidget *parent) :
     ui->setupUi(this);
 }
 
+void AboutDialog::setVersion(QString version, QString date)
+{
+    ui->version_label->setText(QString("Pano Manager ") + version + QString(" ") + date) ;
+}
+
 AboutDialog::~AboutDialog()
 {
     delete ui;

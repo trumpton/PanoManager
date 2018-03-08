@@ -1027,7 +1027,6 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
-    <addaction name="action_Licenses"/>
     <addaction name="action_About"/>
    </widget>
    <addaction name="menu_File"/>
@@ -1149,16 +1148,6 @@
     <bool>false</bool>
    </property>
   </action>
-  <action name="action_Licenses">
-   <property name="text">
-    <string>&amp;Licenses</string>
-   </property>
-  </action>
-  <action name="action_About">
-   <property name="text">
-    <string>&amp;About</string>
-   </property>
-  </action>
   <action name="actionEnable_Web_Browser">
    <property name="checkable">
     <bool>true</bool>
@@ -1180,6 +1169,11 @@
   <action name="action_Web_Server">
    <property name="text">
     <string>&amp;Web Server</string>
+   </property>
+  </action>
+  <action name="action_About">
+   <property name="text">
+    <string>&amp;About</string>
    </property>
   </action>
  </widget>

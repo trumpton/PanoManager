@@ -1,3 +1,6 @@
+#ifndef VERSION_H
+#define VERSION_H
+
 //    PanoManager - Interactive panorama tour manager program
 //    Copyright (C) 2018  Steve M Clarke
 //
@@ -14,30 +17,7 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-//
-// About Dialog
-//
+#define VERSION "v0.2 pre"
+#define DATE "09/03/2018"
 
-#ifndef ABOUTDIALOG_H
-#define ABOUTDIALOG_H
-
-#include <QDialog>
-
-namespace Ui {
-class AboutDialog;
-}
-
-class AboutDialog : public QDialog
-{
-    Q_OBJECT
-
-public:
-    explicit AboutDialog(QWidget *parent = 0);
-    ~AboutDialog();
-    void setVersion(QString version, QString date) ;
-
-private:
-    Ui::AboutDialog *ui;
-};
-
-#endif // ABOUTDIALOG_H
+#endif // VERSION_H

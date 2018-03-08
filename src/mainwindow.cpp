@@ -18,6 +18,8 @@
 // PanoManager Main Window
 //
 
+#include "version.h"
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -937,14 +939,13 @@ void MainWindow::on_action_Properties_triggered()
 }
 
 
-void MainWindow::on_action_Licenses_triggered()
+void MainWindow::on_action_About_triggered()
 {
     AboutDialog dlg ;
-    dlg.show() ;
+    dlg.setVersion(VERSION, DATE) ;
     dlg.exec() ;
     dlg.hide() ;
 }
-
 
 //======================================================================================================================
 //======================================================================================================================
@@ -965,3 +966,4 @@ void MainWindow::on_actionE_xit_triggered()
 
     this->close() ;
 }
+
