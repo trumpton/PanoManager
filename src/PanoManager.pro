@@ -41,7 +41,6 @@ SOURCES += \
         widgets/sceneview/sceneviewwidget.cpp
 
 HEADERS += \
-        library/pmerrors.h \
         mainwindow.h \
         project/project.h \
         project/scene.h \
