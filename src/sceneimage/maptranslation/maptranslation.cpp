@@ -26,6 +26,7 @@
 #include <QStandardPaths>
 #include <QMessageBox>
 #include <QDir>
+#include <QtGlobal>
 
 #ifndef M_PI
 #define M_PI 3.141592654
@@ -105,6 +106,10 @@ MapTranslation::MapTranslation()
 {
     m_dstxy=0 ;
     m_savefolder = QStandardPaths::writableLocation(QStandardPaths::CacheLocation) ;
+    QDir dir(m_savefolder) ;
+    if (!dir.exists()) {
+        dir.mkpath(".") ;
+    }
 }
 
 int MapTranslation::srcx() { return m_srcx ; }
@@ -296,7 +301,10 @@ PM::Err MapTranslation::buildAndSave(ProgressDialog *prog, unsigned short srcx, 
     PM::Err err = PM::Ok ;
 
     for (int f=0; err==PM::Ok && f<=1; f++) {
-        file[f].setFileName(mapPath(f*4, srcx, srcy, dstxy));
+        QString fileName = mapPath(f*4, srcx, srcy, dstxy) ;
+        file[f].setFileName(fileName);
+
+        qInfo("Creating Map Translation: %s", fileName) ;
         if (!file[f].open(QIODevice::WriteOnly)) {
             err = PM::InvalidMapTranslation ;
         } else {

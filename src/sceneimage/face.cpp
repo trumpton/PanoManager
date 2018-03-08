@@ -88,6 +88,7 @@ QImage& Face::image()
 PM::Err Face::build(ProgressDialog *prog, QImage source, int f, int size)
 {
     if (!prog) return PM::InvalidPointer ;
+    if (source.isNull()) return PM::InputNotDefined ;
 
     // TODO: This is already loaded in sceneimage::buildfaces
     // TODO: return true/false
@@ -97,8 +98,11 @@ PM::Err Face::build(ProgressDialog *prog, QImage source, int f, int size)
     int srcy = source.height() ;
     int dstxy = size ;
 
+    PM::Err err = PM::Ok ;
+
     // Start map (advances prog by 100)
-    map.start(prog, f, srcx, srcy, dstxy) ;
+    err = map.start(prog, f, srcx, srcy, dstxy) ;
+    if (err!=PM::Ok) return err ;
 
     // This function advances prog by 100
     int progstart = prog->value() ;
@@ -107,7 +111,6 @@ PM::Err Face::build(ProgressDialog *prog, QImage source, int f, int size)
     MapCoordinate *coord ;
     unsigned long int iteration=0 ;
 
-    PM::Err err = PM::Ok ;
     prog->setText2(QString("Building Face ") + QString::number(f)) ;
 
     do {

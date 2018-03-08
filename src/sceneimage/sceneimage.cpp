@@ -57,7 +57,7 @@ PM::Err SceneImage::loadImage(ProgressDialog *prog, QString imagefile, bool load
 
    int progstart = prog->value() ;
 
-   if (!facesExist(imagefile) && !buildpreview) {
+   if (!facesExist(m_filename) && !buildpreview) {
 
        // Build Faces if requested
        err = buildFaces(prog, buildpreview) ; // 1300
@@ -183,13 +183,15 @@ PM::Err SceneImage::buildFaces(ProgressDialog *prog, bool buildpreview) {
             fileheight = file.height() ;
 
             // Calculate the largest source scale (7 downto 1) because it
-            // looks like the QImage.scaled function can't handled > 32767
+            // looks like the Linux QImage.scaled function can't handled > 32767
+            // And Windows 32 bit applications have a 2Gb memory limitation
+            // So limit scaled image to 16384x8192 => 512Mb
             int filescale=7 ;
             do {
                 scaledfilewidth = filewidth * filescale ;
                 scaledfileheight = fileheight * filescale ;
                 filescale-- ;
-            } while ((scaledfilewidth>32767 || scaledfileheight>32767) && filescale>1) ;
+            } while ((scaledfilewidth>8192 || scaledfileheight>4096) && filescale>1) ;
 
             scaledsource = file.scaled(scaledfilewidth, scaledfileheight, Qt::IgnoreAspectRatio, Qt::SmoothTransformation) ;
 
@@ -202,7 +204,8 @@ PM::Err SceneImage::buildFaces(ProgressDialog *prog, bool buildpreview) {
     int outputsize ;    // Size the face is output at (i.e. equirectangular image height x height)
 
     if (buildpreview) {
-        workingsize = 1024 ;
+        // Previews can use smaller size, and the quality is less important - speed is of the essence
+        workingsize = 512 ;
         outputsize = 512 ;
     } else {
         // Use prime number for working size multiplier as better smooting achieved
@@ -222,7 +225,7 @@ PM::Err SceneImage::buildFaces(ProgressDialog *prog, bool buildpreview) {
             prog->setText2(QString("Building face ") + QString::number(f)) ;
             err = face.build(prog, scaledsource, f, workingsize) ; // 200
             if (err==PM::Ok) {
-                face = face.scaled(fileheight, fileheight) ;
+                face = face.scaled(outputsize, outputsize) ;
                 face.save(m_facedir + "/face00" + QString::number(f) + QString(buildpreview?"_preview.png":".png")) ;
                 if (prog->isCancelled()) err=PM::OperationCancelled ;
             }
