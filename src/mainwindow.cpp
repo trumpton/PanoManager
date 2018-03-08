@@ -942,7 +942,7 @@ void MainWindow::on_action_Properties_triggered()
 void MainWindow::on_action_About_triggered()
 {
     AboutDialog dlg ;
-    dlg.setVersion(VERSION, DATE) ;
+    dlg.setVersion(VERSION, VERSIONDATE) ;
     dlg.exec() ;
     dlg.hide() ;
 }
