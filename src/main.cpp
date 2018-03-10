@@ -22,18 +22,51 @@
 #include <QApplication>
 #include <QFontDatabase>
 #include <QFont>
+#include <unistd.h>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    int fontId = QFontDatabase::addApplicationFont(":/fonts/DejaVuSans.ttf");
-    if (fontId != -1) {
-        QFont font("DejaVuSans");
-        a.setFont(font) ;
+    bool useNativeFileDialog = true ;
+    bool useSystemFonts = true ;
+
+    int c ;
+    while ((c = getopt(argc, argv, "hnNfF")) != -1) {
+        switch (c) {
+            case 'n':
+                useNativeFileDialog=false ;
+                break ;
+            case 'N':
+                useNativeFileDialog=true ;
+                break ;
+            case 'f':
+                useSystemFonts=false ;
+                break ;
+            case 'F':
+                useSystemFonts=true ;
+                break ;
+            case 'h':
+            case '?':
+                printf("panomanager [-h] [-n|N] [-f|F]\n") ;
+                printf(" -N       Use Native File Dialog\n") ;
+                printf(" -n       Use System File Dialog\n") ;
+                printf(" -f       Use in-built Fonts\n") ;
+                printf(" -F       Use System Fonts\n") ;
+                break ;
+        }
+    }
+
+    if (!useSystemFonts) {
+        int fontId = QFontDatabase::addApplicationFont(":/fonts/DejaVuSans.ttf");
+        if (fontId != -1) {
+            QFont font("DejaVuSans");
+            a.setFont(font) ;
+        }
     }
 
     MainWindow w;
+    w.setOptions(useNativeFileDialog) ;
     w.show();
 
     return a.exec();
