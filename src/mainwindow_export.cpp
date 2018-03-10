@@ -56,7 +56,6 @@ void MainWindow::on_action_ExportMarzipano_triggered()
 }
 
 
-
 //----------------------------------------------------------------------------------------------------------------------
 //
 // on_action_ExportPanellum_triggered
@@ -67,28 +66,24 @@ void MainWindow::on_action_ExportPanellum_triggered()
     static const char *masks[] = { "f%y_%x.jpg", "r%y_%x.jpg", "b%y_%x.jpg", "l%y_%x.jpg", "u%y_%x.jpg", "d%y_%x.jpg" } ;
     int tileresolution = 256 ;
 
+    PM::Err err = PM::Ok ;
     QString lastoutputfolder = settings->value("lastoutputfolder", "").toString() ;
     QString dir = QFileDialog::getExistingDirectory(this, tr("Select Panellum Output Folder"),
                                                  lastoutputfolder,
-                                                 QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+                                                 QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks | m_fdOptions);
 
     if (!checkProject(dir)) {
         return ;
     }
 
+    m_prog.setTitle("Exporing Panellum") ;
+    m_prog.show() ;
+    m_prog.setMaximum(200+project.sceneCount()*100);
+    m_prog.setValue(0) ;
+
     lastoutputfolder = dir ;
     settings->setValue("lastoutputfolder", lastoutputfolder) ;
     dir = dir + "/" ;
-
-    ProgressDialog progress ;
-    progress.setTitle("Exporing Panellum") ;
-    progress.show() ;
-    progress.setMaximum(200 + project.sceneCount()*300);
-
-    // Write the Panellum Supporting Files
-    progress.setText1("Saving Panellum Files");
-    exportPanellumFiles(dir, project.title());
-    progress.setValue(100) ;
 
     QJsonObject json ;
 
@@ -112,14 +107,15 @@ void MainWindow::on_action_ExportPanellum_triggered()
     // Scenes Section
 
     QJsonObject jo_scenes ;
-    for (int i=0; i<project.sceneCount() && !progress.isCancelled(); i++) {
 
-        int progval = progress.value() ;
+    for (int i=0; err==PM::Ok && i<project.sceneCount(); i++) {
+
+        m_prog.setText1( QString("Exporting ") + project.sceneAt(i).title()) ;
+        m_prog.setDelta(0) ;
 
         Scene& scene = project.sceneAt(i) ;
-        progress.setText1( QString("Exporting ") + project.sceneAt(i).title()) ;
         int levels, cuberesolution ;
-        exportFaces(&progress, scene, tileresolution, masks, dir + scene.titleId(), &levels, &cuberesolution) ;
+        err = exportFaces(scene, tileresolution, masks, dir + scene.titleId(), &levels, &cuberesolution) ;
 
         QJsonObject jo_scene ;
         jo_scene.insert("northoffset", scene.northOffset()/1000) ;
@@ -164,24 +160,38 @@ void MainWindow::on_action_ExportPanellum_triggered()
         jo_scene.insert("hotSpots", ja_hotspots) ;
         jo_scenes.insert(scene.titleId(), jo_scene) ;
 
-        progress.setValue(progval+300) ;
+        m_prog.addValue(100) ;
+
     }
 
     json.insert("scenes", jo_scenes) ;
 
-    // Write the configuration file
 
-    progress.setText1("Saving Tour Configuration") ;
-    QJsonDocument doc ;
-    doc.setObject(json);
-    QFile configoutput(dir + "tour.js") ;
-    configoutput.open(QIODevice::WriteOnly | QIODevice::Text) ;
-    configoutput.write(QString("var tourdata = ").toLatin1()) ;
-    configoutput.write(doc.toJson()) ;
-    configoutput.close() ;
-    progress.setValue(progress.value()+100) ;
+    if (err==PM::Ok) {
+        // Write the configuration file
+        m_prog.setText1("Saving Tour Configuration") ;
+        QJsonDocument doc ;
+        doc.setObject(json);
+        QFile configoutput(dir + "tour.js") ;
+        configoutput.open(QIODevice::WriteOnly | QIODevice::Text) ;
+        configoutput.write(QString("var tourdata = ").toLatin1()) ;
+        configoutput.write(doc.toJson()) ;
+        configoutput.close() ;
+        m_prog.addValue(100) ;
+    }
 
-    progress.hide() ;
+    if (err==PM::Ok) {
+        // Write the Panellum Supporting Files
+        m_prog.setText1("Saving Panellum Files");
+        exportPanellumFiles(dir, project.title());
+        m_prog.addValue(100) ;
+    }
+
+    m_prog.hide() ;
+
+    if (err!=PM::Ok) {
+        QMessageBox::critical(nullptr, QString("Error Exporting Tour: "), PM::errString(err)) ;
+    }
 }
 
 
@@ -272,33 +282,49 @@ bool MainWindow::checkProject(QString dir)
 // exportFaces - Perform the export
 //
 
-bool MainWindow::exportFaces(ProgressDialog *progress, Scene scene, int tilesize, const char *masks[], QString folder, int *levels, int *cuberesolution)
+PM::Err MainWindow::exportFaces(Scene scene, int tilesize, const char *masks[], QString folder, int *levels, int *cuberesolution)
 {
     SceneImage sceneimg ;
-    if (!progress || !levels || !cuberesolution) return false ;
+    if (!levels || !cuberesolution) return PM::InvalidPointer ;
 
-    progress->setText2(QString("Loading and Building"));
-    if (sceneimg.loadImage(progress, scene.filename(), false, false, false)!=PM::Ok) return false;
-    int width = sceneimg.getFace(0).image().width() ;
+    m_prog.setDelta(0) ;
 
-    int res=0 ;
-    if (tilesize>width) tilesize=width ;
-    progress->setText2(QString("Exporting"));
-    while ( qPow(2,res)*tilesize <= width) {
-        int imagesize = qPow(2,res)*tilesize ;
-        for (int f=0; f<6; f++) {
-            QString filename = folder + QString("/") + QString::number(res+1) ;
-            QString mask = masks[f];
-            if (imagesize>width) imagesize=width ;
-            sceneimg.getFace(f).exportTiles(progress, imagesize, tilesize, filename, mask) ;
+    connect(&sceneimg, SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
+    connect(&m_prog, SIGNAL(abortPressed()), &sceneimg, SLOT(handleAbort())) ;
+
+    // Load the high resolution version of the image
+    PM::Err err = sceneimg.loadImage(scene.filename(), false, false, false, false) ;
+
+    if (err==PM::Ok) {
+
+        m_prog.setDelta(50) ;
+
+        int width = sceneimg.getFace(0).width() ;
+
+        int res=0 ;
+        if (tilesize>width) tilesize=width ;
+        while ( err==PM::Ok && qPow(2,res)*tilesize <= width) {
+            int imagesize = qPow(2,res)*tilesize ;
+            for (int f=0; err==PM::Ok && f<6; f++) {
+                QString filename = folder + QString("/") + QString::number(res+1) ;
+                QString mask = masks[f];
+                if (imagesize>width) imagesize=width ;
+                err = sceneimg.getFace(f).exportTiles(imagesize, tilesize, filename, mask) ;
+                m_prog.setDelta((f*100)/6) ;
+            }
+            res++ ;
         }
-        res++ ;
+
+        *cuberesolution = width ;
+        *levels = res ;
+        m_prog.setDelta(100) ;
+
     }
 
-    *cuberesolution = width ;
-    *levels = res ;
+    disconnect(&m_prog, SIGNAL(abortPressed()), &sceneimg, SLOT(handleAbort())) ;
+    disconnect(&sceneimg, SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
 
-    return true ;
+    return err ;
 }
 
 
