@@ -23,46 +23,57 @@
 
 #include <QString>
 #include <QImage>
-#include "../dialogs/progress/progressdialog.h"
+#include <QObject>
 #include "../errors/pmerrors.h"
 
-class Face
+class Face : public QObject, public QImage
 {
+    Q_OBJECT
+
 private:
-    QImage m_image ;
-    void setImage(QImage& img) ;
+    bool m_abort ;
 
 public:
     // Constructor
-    Face() ;
-    Face(const QImage& img) ;
+    explicit Face() ;
+    explicit Face(const QImage& img) ;
     ~Face() ;
-
-    // Load Image
-    bool load(QString filename) ;
-
-    // Access Image Data
-    QImage& image() ;
-
-    int width() ;
-    int height() ;
-    const Face scaled(int w, int h) ;
-    bool save(QString filename) ;
 
     // Release memory
     void clear() ;
 
     // Build face 'f' of size 'size x size', from equirectangular image 'source'
     // Advanced prog on by 100
-    PM::Err build(ProgressDialog *prog, QImage source, int f, int size) ;
+    PM::Err build(QImage source, int f, int size) ;
 
     // Export targetimageszie sized image made of tilessize sized tiles to outputFolder,
     // using mask to create individual files.
     // Advances prog on by 100
-    PM::Err exportTiles(ProgressDialog *prog, int targetimagesize, int tilesize, QString outputFolder, QString mask) ;
+    PM::Err exportTiles(int targetimagesize, int tilesize, QString outputFolder, QString mask) ;
 
-    Face& operator= (const Face& other) { m_image = other.m_image ; return *this ; }
-    Face& operator= (const QImage& other) { m_image = other ; return *this ; }
+    // Copy Face to Face
+    Face& operator=(const Face& d)
+    {
+        QImage::operator=(d);
+        m_abort = d.m_abort;
+        return *this;
+    }
+
+    // Copy Image to Face
+    Face& operator=(const QImage& d)
+    {
+        QImage::operator=(d);
+        return *this;
+    }
+
+signals:
+    void progressUpdate(QString message) ;
+    void percentUpdate(int percent) ;
+    void abort() ;
+
+public slots:
+    void handleProgressUpdate(QString message) ;
+    void handleAbort() ;
 
 };
 

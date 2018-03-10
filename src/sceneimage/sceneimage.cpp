@@ -23,12 +23,11 @@
 #include <QDir>
 #include <QRgb>
 #include <QFile>
-#include <QProgressBar>
 #include <QApplication>
 #include <QStandardPaths>
 #include "../errors/pmerrors.h"
 
-SceneImage::SceneImage()
+SceneImage::SceneImage() : QObject()
 {
 }
 
@@ -37,6 +36,7 @@ void SceneImage::clear()
 {
     m_filename = "" ;
     m_facedir = "" ;
+    m_abort = false ;
     for (int i=0; i<6; i++) {
         m_faces[i].clear() ;
     }
@@ -44,10 +44,10 @@ void SceneImage::clear()
 
 // TODO: if preview exists, and ask for load hires if avail, nothing is loaded
 // loadpreview=true, buildpreview=false, buildonly=false
-// loadImage increases prog by 1400
-PM::Err SceneImage::loadImage(ProgressDialog *prog, QString imagefile, bool loadpreview, bool buildpreview, bool buildonly)
+PM::Err SceneImage::loadImage(QString imagefile, bool loadpreview, bool buildpreview, bool scaleforpreview, bool buildonly)
 {
-   if (!prog) return PM::InvalidPointer ;
+
+   emit(progressUpdate("Loading Faces ...")) ;
 
    PM::Err err = PM::Ok ;
    QFileInfo finfo(imagefile) ;
@@ -55,44 +55,40 @@ PM::Err SceneImage::loadImage(ProgressDialog *prog, QString imagefile, bool load
    m_filename = imagefile ;
    m_facedir = finfo.canonicalPath() + "/" + finfo.baseName();
 
-   int progstart = prog->value() ;
-
    if (!facesExist(m_filename) && !buildpreview) {
 
-       // Build Faces if requested
-       err = buildFaces(prog, buildpreview) ; // 1300
+       // Build full res face
+       err = buildFaces(false) ;
 
    } else if (!previewExists(m_filename) && (loadpreview || buildpreview)) {
 
        // Build Preview if it is needed for loading, or requested for building
-       err = buildFaces(prog, buildpreview) ; // 1300
+       err = buildFaces(buildpreview) ;
 
    }
-
-   prog->setValue(progstart + 1300) ;
 
    if (err==PM::Ok && !buildonly) {
 
        if (loadpreview) {
 
            // Load preview as requested
-           err = loadFaces(true) ;
+           if (previewExists(m_filename)) err = loadFaces(true, true) ;
+           else err = PM::PreviewLoadError ;
 
        } else {
 
-           // Try to load faces, and on failure, load preview
-           if (facesExist(imagefile)) err = loadFaces(false) ;
-           if (err!=PM::Ok) err = loadFaces(true) ;
+           // Load the faces
+           if (facesExist(m_filename)) err = loadFaces(false, scaleforpreview) ;
+           else err = PM::FaceLoadError ;
 
        }
 
    }
 
-   prog->setValue(progstart + 1400) ;
-
    return err ;
 
 }
+
 
 
 bool SceneImage::previewExists(QString imagefile)
@@ -125,8 +121,8 @@ bool SceneImage::facesExist(QString imagefile)
 
 
 
-// Load faces, and scale to 1024x1024
-PM::Err SceneImage::loadFaces(bool loadpreview)
+// Load faces, and scale to 512x512
+PM::Err SceneImage::loadFaces(bool loadpreview, bool scaleforpreview)
 {
     if (m_facedir.isEmpty()) return PM::InputNotDefined ;
 
@@ -134,12 +130,20 @@ PM::Err SceneImage::loadFaces(bool loadpreview)
     m_ispreview = loadpreview ;
 
     for (int f=0; err==PM::Ok && f<6; f++) {
+        emit(progressUpdate(QString("Loading Face: ") + QString::number(f))) ;
         QString path = m_facedir + "/face00" + QString::number(f) + QString(loadpreview?"_preview.png":".png") ;
-        Face face ;
-        if (face.load(path)) {
-            m_faces[f] = face.scaled(1024, 1024) ;
+        if (m_faces[f].load(path)) {
+            if (scaleforpreview) {
+                emit(progressUpdate(QString("Scaling Face: ") + QString::number(f))) ;
+                m_faces[f] = m_faces[f].scaled(512, 512) ;
+            }
+            emit(percentUpdate((f*100)/6)) ;
         } else {
-            err = PM::FaceReadError ;
+            if (loadpreview) {
+                err = PM::PreviewLoadError ;
+            } else {
+                err = PM::FaceLoadError ;
+            }
         }
     }
     return err ;
@@ -155,11 +159,7 @@ Face &SceneImage::getFace(int n)
 // Map a part of the equirectangular panorama (in) to a cube face, using the MapTranslation
 // which provides the corresponding equirectangular coordinates for each face coordinate.
 // buildFaces will move progress bar (prog) on by 1300.
-PM::Err SceneImage::buildFaces(ProgressDialog *prog, bool buildpreview) {
-
-    if (!prog) return PM::InvalidPointer ;
-
-    int progstart = prog->value() ;
+PM::Err SceneImage::buildFaces(bool buildpreview) {
 
     QImage scaledsource ;
 
@@ -172,6 +172,8 @@ PM::Err SceneImage::buildFaces(ProgressDialog *prog, bool buildpreview) {
     {
         // Work with a smoothed and scaled version of the source for faster and more accurate colour smoothing
         QImage file ;
+
+        emit(progressUpdate(QString("Loading Equirectangular Image")));
 
         if (!file.load(m_filename)) {
 
@@ -193,12 +195,12 @@ PM::Err SceneImage::buildFaces(ProgressDialog *prog, bool buildpreview) {
                 filescale-- ;
             } while ((scaledfilewidth>8192 || scaledfileheight>4096) && filescale>1) ;
 
+            emit(progressUpdate(QString("UpScaling Equirectangular Image")));
+
             scaledsource = file.scaled(scaledfilewidth, scaledfileheight, Qt::IgnoreAspectRatio, Qt::SmoothTransformation) ;
 
         }
     }
-
-    prog->setValue(progstart+100) ;
 
     int workingsize ;   // Size the face is generated at (3 * equirectangular image height)
     int outputsize ;    // Size the face is output at (i.e. equirectangular image height x height)
@@ -220,14 +222,23 @@ PM::Err SceneImage::buildFaces(ProgressDialog *prog, bool buildpreview) {
     }
 
     for (int f=0; err==PM::Ok && f<6; f++) {
+        m_f = f ;
         if (err==PM::Ok) {
+
             Face face ;
-            prog->setText2(QString("Building face ") + QString::number(f)) ;
-            err = face.build(prog, scaledsource, f, workingsize) ; // 200
+            emit(progressUpdate(QString("Building Face: ") + QString::number(f)));
+            connect(&face, SIGNAL(percentUpdate(int)), this, SLOT(handlePercentUpdate(int))) ;
+            connect(&face, SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
+            connect(this, SIGNAL(abort()), &face, SLOT(handleAbort())) ;
+            err = face.build(scaledsource, f, workingsize) ;
+            disconnect(this, SIGNAL(abort()), &face, SLOT(handleAbort())) ;
+            disconnect(&face, SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
+            disconnect(&face, SIGNAL(percentUpdate(int)), this, SLOT(handlePercentUpdate(int))) ;
+
             if (err==PM::Ok) {
+                emit(progressUpdate(QString("Saving Face: ") + QString::number(f)));
                 face = face.scaled(outputsize, outputsize) ;
                 face.save(m_facedir + "/face00" + QString::number(f) + QString(buildpreview?"_preview.png":".png")) ;
-                if (prog->isCancelled()) err=PM::OperationCancelled ;
             }
         }
     }
@@ -235,3 +246,21 @@ PM::Err SceneImage::buildFaces(ProgressDialog *prog, bool buildpreview) {
     return err ;
 }
 
+void SceneImage::handleProgressUpdate(QString message)
+{
+    emit( progressUpdate(message)) ;
+}
+
+
+void SceneImage::handleAbort()
+{
+    m_abort = true ;
+    emit(abort()) ;
+}
+
+
+// Handle % processing of face function
+void SceneImage::handlePercentUpdate(int percent)
+{
+    emit(percentUpdate((percent + m_f*100)/6)) ;
+}

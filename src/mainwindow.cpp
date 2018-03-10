@@ -87,6 +87,15 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::setOptions(bool useNativeFileDialog)
+{
+    if (!useNativeFileDialog) {
+        m_fdOptions = QFileDialog::DontUseNativeDialog ;
+    } else {
+        m_fdOptions = (QFileDialog::Option)0 ;
+    }
+}
+
 //======================================================================================================================
 //
 // Form Refresh Functions
@@ -338,7 +347,7 @@ void MainWindow::on_addscene_pushButton_clicked()
     qDebug() << "Add_Scene()" ;
 
     QString lastimagedir = settings->value("lastimagedir", "").toString() ;
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Import Rectilinear Image"), lastimagedir, tr("Jpeg Image (*.jpg); Tif Image (*.tiff); PNG Image (*.png); All Files (*.*)"));
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Import Rectilinear Image"), lastimagedir, tr("Jpeg Image (*.jpg); Tif Image (*.tiff); PNG Image (*.png); All Files (*.*)"), Q_NULLPTR, m_fdOptions);
     if (!fileName.isEmpty()) {
         QFileInfo path(fileName) ;
         settings->setValue("lastimagedir", path.absoluteFilePath()) ;
@@ -420,14 +429,16 @@ void MainWindow::changeScene(QString id)
         north = selectedScene.northOffset() ;
         bool loadhires = ui->action_Load_Hi_Res_If_Avail->isChecked() ;
 
-        ProgressDialog prog ;
-        prog.setTitle("Changing Scene") ;
-        prog.setMaximum(1400);
-        prog.show() ;
+        m_prog.setTitle("Changing Scene") ;
+        m_prog.setMaximum(200);
+        m_prog.show() ;
 
-        err=DoBuild(&prog, selectedScene.filename(), &sceneimage, 0, 1, !loadhires, true, false) ;
+        err=DoBuild(selectedScene.filename(), &sceneimage, 0, 1, !loadhires, true, true, false) ;
+
 
         if (err==PM::Ok) {
+
+            m_prog.addValue(100) ;
 
             // Load Scene
             ui->display->loadScene(&selectedScene.nodes(), sceneimage.getFace(0), sceneimage.getFace(1), sceneimage.getFace(2), sceneimage.getFace(3), sceneimage.getFace(4), sceneimage.getFace(5)) ;
@@ -448,6 +459,8 @@ void MainWindow::changeScene(QString id)
             if (ui->node_listWidget->currentItem())
                 ui->node_listWidget->currentItem()->setSelected(false) ;
 
+            m_prog.addValue(100) ;
+
         } else {
 
             QMessageBox::critical(nullptr, QString("Error Changing Scene"), PM::errString(err)) ;
@@ -457,8 +470,7 @@ void MainWindow::changeScene(QString id)
 
         }
 
-        prog.setValue(400) ;
-        prog.hide() ;
+        m_prog.hide() ;
 
     }
 
@@ -779,7 +791,7 @@ void MainWindow::on_action_Open_Project_triggered()
     qDebug() << "Open_Project()" ;
 
     QString lastdir = settings->value("lastdir", "").toString() ;
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), lastdir, tr("Pano Manager Project Files (*pmp)"));
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), lastdir, tr("Pano Manager Project Files (*pmp)"), Q_NULLPTR, m_fdOptions);
     if (!fileName.isEmpty()) {
         QFileInfo path(fileName) ;
         project.clear() ;
@@ -825,7 +837,7 @@ void MainWindow::on_action_Save_Project_As_triggered()
 
     if (project.isDirty()) {
         QString lastdir = settings->value("lastdir", "").toString() ;
-        QString fileName = QFileDialog::getSaveFileName(this, tr("Save Project"), lastdir, tr("Pano Manager Project Files (*pmp)")) ;
+        QString fileName = QFileDialog::getSaveFileName(this, tr("Save Project"), lastdir, tr("Pano Manager Project Files (*pmp)"), Q_NULLPTR, m_fdOptions) ;
         if (!fileName.isEmpty()) {
             QFileInfo path(fileName) ;
             settings->setValue("lastdir", path.absoluteFilePath()) ;
@@ -888,20 +900,19 @@ void MainWindow::on_action_Build_Hi_Res_Scenes_triggered()
         files.append(project.sceneAt(i).filename()) ;
     }
 
-    ProgressDialog prog ;
-
     SceneImage img ;
     int n = files.size() ;
-    prog.setTitle("Batch Scene Build") ;
-    prog.show() ;
-    prog.setMaximum(n*1400);
+    m_prog.setTitle("Batch Scene Build") ;
+    m_prog.setMaximum(n*100);
+    m_prog.show() ;
 
     PM::Err err = PM::Ok ;
 
     for (int i=0; err==PM::Ok && i<n; i++) {
-        err=DoBuild(&prog, files.at(i), &img, i, n, false, false, true) ;
+        err=DoBuild(files.at(i), &img, i, n, false, false, true, true) ;
+        if (err==PM::Ok) m_prog.addValue(100) ;
     }
-    prog.hide() ;
+    m_prog.hide() ;
     if (err!=PM::Ok) {
         QMessageBox::critical(NULL, "Build Hi-res Error", PM::errString(err)) ;
     }
@@ -911,14 +922,23 @@ void MainWindow::on_action_Build_Hi_Res_Scenes_triggered()
 //
 // doBuild
 //
-PM::Err MainWindow::DoBuild(ProgressDialog *progress, QString file, SceneImage *scene, int seq, int of, bool loadpreview, bool buildpreview, bool buildonly)
+PM::Err MainWindow::DoBuild(QString file, SceneImage *scene, int seq, int of, bool loadpreview, bool buildpreview, bool scaleforpreview, bool buildonly)
 {
-    if (!progress) return PM::InvalidPointer ;
     PM::Err err = PM::Ok ;
-    progress->setTitle("Building") ;
-    progress->setText1("scene " + QString::number(seq)) ;
-    err = scene->loadImage(progress, file, loadpreview, buildpreview, buildonly) ;
+    m_prog.setTitle("Building") ;
+    m_prog.setText1("scene " + QString::number(seq)) ;
+    m_sceneNum = seq ;
+    connect(scene, SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
+    connect(&m_prog, SIGNAL(abortPressed()), scene, SLOT(handleAbort())) ;
+    err = scene->loadImage(file, loadpreview, buildpreview, scaleforpreview, buildonly) ;
+    disconnect(&m_prog, SIGNAL(abortPressed()), scene, SLOT(handleAbort())) ;
+    disconnect(scene, SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
     return err ;
+}
+
+void MainWindow::handleProgressUpdate(QString message)
+{
+    m_prog.setText2(message) ;
 }
 
 

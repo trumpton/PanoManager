@@ -36,19 +36,29 @@ public:
     ~ProgressDialog();
 
     void show() ;
-    void setMaximum(int max) ;
-    void setValue(int value) ;
-    int value() ;
+    void setMaximum(int max) ;  // Sets maximum value (represented as 100%)
+    void setValue(int value) ;  // Sets progress to value
+    void addValue(int delta) ;  // Sets progress to value + delta
+    void setDelta(int delta) ;  // Shows progress as value + delta
+    void saveDelta() ;          // Sets value to value + delta
+
+    int value() ;               // Returns value + delta
+    int saved() ;               // Returns value
+
     void setTitle(QString title) ;
     void setText1(QString text) ;
     void setText2(QString text) ;
     bool isCancelled() ;
 
+signals:
+    void abortPressed() ;
+
 private slots:
-    void on_build_buttonBox_rejected();
+    void on_buttonBox_rejected();
 
 private:
     bool m_isCancelled ;
+    int m_savePos ;
     Ui::ProgressDialog *ui;
 };
 

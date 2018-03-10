@@ -24,6 +24,7 @@
 #include <QMainWindow>
 #include <QSettings>
 #include <QListWidgetItem>
+#include <QFileDialog>
 
 #include "project/project.h"
 #include "sceneimage/sceneimage.h"
@@ -41,6 +42,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    void setOptions(bool useNativeFileDialog) ;
 
 private:
     QListWidgetItem* findListWidgetItemById(QListWidget *widget, QString id) ;
@@ -80,6 +82,9 @@ private slots:
     void on_action_About_triggered();
 
 private:
+    enum QFileDialog::Option m_fdOptions ;
+    ProgressDialog m_prog ;
+    int m_sceneNum ;
     WebServer webserver ;
     SceneImage sceneimage ;
     Project project ;
@@ -92,14 +97,15 @@ private:
     void refreshNodes(QString selectedNode) ;
     void buildExportTiles(QString outputFolder, QString mask) ;
     bool checkProject(QString dir) ;
-    bool exportFaces(ProgressDialog *progress, Scene scene, int tilesize, const char *masks[], QString folder, int *levels, int *cuberesolution) ;
-    PM::Err DoBuild(ProgressDialog *progress, QString file, SceneImage *scene, int seq, int of, bool loadpreview, bool buildpreview, bool buildonly) ;
+    PM::Err exportFaces(Scene scene, int tilesize, const char *masks[], QString folder, int *levels, int *cuberesolution) ;
+    PM::Err DoBuild(QString file, SceneImage *scene, int seq, int of, bool loadpreview, bool buildpreview, bool scaleforpreview, bool buildonly) ;
     void exportPanellumFiles(QString folder, QString title);
     void exportMarzipanoFiles(QString folder, QString title);
-
     void copyResourceFolder(QString foldersrc, QString dest, bool forceOverwrite) ;
     void copyFile(QString source, QString dest, bool forceOverwrite) ;
 
+public slots:
+    void handleProgressUpdate(QString message) ;
 
 };
 

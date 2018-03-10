@@ -29,6 +29,7 @@ ProgressDialog::ProgressDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     m_isCancelled=false ;
+    m_savePos=0 ;
 }
 
 ProgressDialog::~ProgressDialog()
@@ -44,6 +45,7 @@ void ProgressDialog::show()
 
 void ProgressDialog::setMaximum(int max)
 {
+    m_savePos=0 ;
     ui->progressBar->setMinimum(0) ;
     ui->progressBar->setMaximum(max);
 }
@@ -53,10 +55,37 @@ int ProgressDialog::value()
     return ui->progressBar->value() ;
 }
 
+int ProgressDialog::saved()
+{
+    return m_savePos ;
+}
+
 void ProgressDialog::setValue(int value)
 {
     ui->progressBar->setValue(value) ;
+    m_savePos = value ;
     qApp->processEvents() ;
+}
+
+// Sets progress to value + delta
+void ProgressDialog::addValue(int delta)
+{
+    m_savePos += delta ;
+    ui->progressBar->setValue(m_savePos) ;
+    qApp->processEvents() ;
+}
+
+// Shows progress as value + delta
+void ProgressDialog::setDelta(int delta)
+{
+    ui->progressBar->setValue(m_savePos+delta) ;
+    qApp->processEvents() ;
+}
+
+// Sets value to value + delta
+void ProgressDialog::saveDelta()
+{
+    m_savePos = value() ;
 }
 
 void ProgressDialog::setText1(QString text)
@@ -75,6 +104,8 @@ void ProgressDialog::setText2(QString text)
 void ProgressDialog::setTitle(QString title)
 {
     setWindowTitle(title) ;
+    ui->text1->setText("") ;
+    ui->text2->setText("") ;
     qApp->processEvents() ;
 }
 
@@ -83,7 +114,8 @@ bool ProgressDialog::isCancelled()
        return m_isCancelled ;
 }
 
-void ProgressDialog::on_build_buttonBox_rejected()
+void ProgressDialog::on_buttonBox_rejected()
 {
     m_isCancelled = true ;
+    emit(abortPressed()) ;
 }

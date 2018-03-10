@@ -21,16 +21,18 @@
 #ifndef PMERRORS_H
 #define PMERRORS_H
 
-static const char *_pmerrors_errstr[10] = {
+static const char *_pmerrors_errstr[13] = {
     "Success",
+    "Insufficient Memory",
     "Invalid Map Translation.  Try manually clearing out ~/.cache/PanoManager",
     "Internal Error - Invalid Pointer",
     "Internal Error - Input Not Defined",
     "Internal Error - Output Not Defined",
     "Internal Error - Invalid Target Image Size",
     "Unable to Write to Output File",
-    "Unable to Read Face Image",
     "Unable to Read Equirectangular Image",
+    "Unable to load Full-Size Face",
+    "Unable to load Preview Face",
     "Operation Cancelled"
 } ;
 
@@ -41,6 +43,9 @@ public:
     typedef enum {
         // Success
         Ok=0,
+
+        // Allocation Failed
+        OutOfMemory,
 
         // File corruptions
         InvalidMapTranslation,
@@ -53,9 +58,11 @@ public:
         OutputNotDefined,
         InvalidTargetImageSize,
 
+        // Error Loading / Saving
         OutputWriteError,
-        FaceReadError,
         EquirectReadError,
+        FaceLoadError,
+        PreviewLoadError,
 
         // Abort
         OperationCancelled

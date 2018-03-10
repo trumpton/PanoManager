@@ -1087,7 +1087,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Load &amp;Hi-Res if Available</string>
+    <string>Load &amp;Hi-Res Images</string>
    </property>
   </action>
   <action name="action_Add">

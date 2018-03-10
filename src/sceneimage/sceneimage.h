@@ -21,23 +21,26 @@
 #ifndef SCENEIMAGE_H
 #define SCENEIMAGE_H
 
-#include <QImage>
 #include <QString>
-#include "../dialogs/progress/progressdialog.h"
+#include <QObject>
 #include "../errors/pmerrors.h"
 #include "../sceneimage/face.h"
 
 
-class SceneImage
+class SceneImage : public QObject
 {
+    Q_OBJECT
+
 private:
+    bool m_abort ;
     QString m_filename ;
     QString m_facedir ;
     Face m_faces[6] ;
     bool m_ispreview ;
+    int m_f ; // Counter used to report % progress
 
-    PM::Err buildFaces(ProgressDialog *prog, bool buildpreview=false) ;
-    PM::Err loadFaces(bool loadpreview) ;
+    PM::Err buildFaces(bool buildpreview=false) ;
+    PM::Err loadFaces(bool loadpreview, bool scaleforpreview = true) ;
 
 public:
     SceneImage();
@@ -45,9 +48,19 @@ public:
     bool facesExist(QString imagefile) ;
     bool previewExists(QString imagefile) ;
 
-    // Loads image, and increases prog by 300
-    PM::Err loadImage(ProgressDialog *prog, QString imagefile, bool loadpreview, bool buildpreview, bool buildonly) ;
+    PM::Err loadImage(QString imagefile, bool loadpreview, bool buildpreview, bool scaleforpreview, bool buildonly) ;
     Face& getFace(int n) ;
+
+signals:
+    void progressUpdate(QString message) ;
+    void abort() ;
+    void percentUpdate(int percent) ;
+
+public slots:
+    void handleProgressUpdate(QString message) ;
+    void handleAbort() ;
+    void handlePercentUpdate(int percent) ;
+
 };
 
 #endif // SCENEIMAGE_H

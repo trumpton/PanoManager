@@ -22,20 +22,21 @@
 #include "maptranslation/maptranslation.h"
 
 #include <QImage>
+#include <QObject>
 #include <QString>
 #include <QApplication>
 #include <QStandardPaths>
 #include <QDir>
 #include <QMessageBox>
 
-Face::Face()
+Face::Face() : QObject(0), QImage()
 {
+    m_abort = false ;
 }
 
-
-Face::Face(const QImage& img)
+Face::Face(const QImage& img) : QObject(0), QImage(img)
 {
-    m_image = img ;
+    m_abort = false ;
 }
 
 Face::~Face()
@@ -49,49 +50,33 @@ Face::~Face()
 
 void Face::clear()
 {
-    QImage tiny ;
-    m_image = tiny ;
-}
-
-////////////////////////////////////////////////////////////////////
-/// \brief Face::load
-/// \param filename
-/// \return
-///
-
-bool Face::load(QString filename)
-{
-    return m_image.load(filename) ;
+    *this = QImage(1, 1, QImage::Format_ARGB32) ;
 }
 
 
 ////////////////////////////////////////////////////////////////////
-/// \brief Face::image
-/// \return
-///
-
-QImage& Face::image()
+//
+void Face::handleProgressUpdate(QString message)
 {
-    return m_image ;
+    emit(progressUpdate(message)) ;
 }
 
 ////////////////////////////////////////////////////////////////////
 /// \brief Face::build
-/// \param prog
 /// \param source
 /// \param f
 /// \param size
 /// \return
 ///
 
-// Advances prog by 200
-PM::Err Face::build(ProgressDialog *prog, QImage source, int f, int size)
+//!!TODO Percent Update
+
+PM::Err Face::build(QImage source, int f, int size)
 {
-    if (!prog) return PM::InvalidPointer ;
     if (source.isNull()) return PM::InputNotDefined ;
 
-    // TODO: This is already loaded in sceneimage::buildfaces
-    // TODO: return true/false
+    m_abort = false ;
+
     MapTranslation map ;
 
     int srcx = source.width() ;
@@ -100,48 +85,47 @@ PM::Err Face::build(ProgressDialog *prog, QImage source, int f, int size)
 
     PM::Err err = PM::Ok ;
 
-    // Start map (advances prog by 100)
-    err = map.start(prog, f, srcx, srcy, dstxy) ;
+    connect(&map, SIGNAL(progressUpdate(int,QString)), this, SLOT(mapStartUpdated(int,QString))) ;
+    connect(this, SIGNAL(abort()), &map, SLOT(handleAbort())) ;
+    err = map.start(f, srcx, srcy, dstxy) ;
+    disconnect(this, SIGNAL(abort()), &map, SLOT(handleAbort())) ;
+    disconnect(&map, SIGNAL(progressUpdate(int,QString)), this, SLOT(mapStartUpdated(int,QString))) ;
+
     if (err!=PM::Ok) return err ;
 
-    // This function advances prog by 100
-    int progstart = prog->value() ;
+    emit(progressUpdate(QString("Building Face: ") + QString::number(f))) ;
 
-    m_image = QImage(dstxy, dstxy, QImage::Format_ARGB32) ;
+    *this = QImage(dstxy, dstxy, QImage::Format_ARGB32) ; // Set Image Size
+    if (width()!=dstxy || height()!=dstxy) err=PM::OutOfMemory ;
+
     MapCoordinate *coord ;
     unsigned long int iteration=0 ;
 
-    prog->setText2(QString("Building Face ") + QString::number(f)) ;
-
     do {
+
         coord=map.next() ;
-        if (++iteration%501==1) {
 
-            // TODO: Need a tidier exist than this
-            if (prog->isCancelled()) err=PM::OperationCancelled ;
-
-            prog->setValue(progstart + (100*iteration)/(dstxy*dstxy)) ;
+        if (coord->dstx==0) {
+            //QCoreApplication::processEvents();
+            qApp->processEvents();
+            if (m_abort) { err = PM::OperationCancelled ; }
         }
+
         if (coord->dstx > dstxy || coord->dsty>dstxy) err = PM::InvalidMapTranslation ;
         QRgb pix= source.pixel(coord->srcx, coord->srcy) ;
-        m_image.setPixel(coord->dsty, coord->dstx, pix) ;
+        setPixel(coord->dsty, coord->dstx, pix) ;
 
     } while (coord->face>=0 && iteration<=(dstxy*dstxy)) ;
-
-    prog->setValue(progstart+100) ;
 
     if (coord->face>=0) err = PM::InvalidMapTranslation ;
 
     map.end() ;
-    m_image = m_image.scaled(size, size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation) ;
-
     return err ;
 }
 
 
 ////////////////////////////////////////////////////////////////////
 /// \brief Face::exportTiles
-/// \param prog
 /// \param targetimagesize
 /// \param tilesize
 /// \param outputFolder
@@ -149,18 +133,21 @@ PM::Err Face::build(ProgressDialog *prog, QImage source, int f, int size)
 /// \return
 ///
 
-PM::Err Face::exportTiles(ProgressDialog *prog, int targetimagesize, int tilesize, QString outputFolder, QString mask)
+//!!TODO Percent Update
+
+PM::Err Face::exportTiles(int targetimagesize, int tilesize, QString outputFolder, QString mask)
 {
-    if (!prog) return PM::InvalidPointer ;
+    m_abort = false ;
+    emit(QString("Exporting Tiles for image size: ") + QString::number(targetimagesize) +
+            QString("x") + QString::number(targetimagesize)) ;
+
     if (outputFolder.isEmpty()) return PM::OutputNotDefined ;
     if (targetimagesize<=0) return PM::InvalidTargetImageSize ;
-
-    int progstart = prog->value() ;
 
     int width = targetimagesize ;
     int height = targetimagesize ;
 
-    QImage img = m_image.scaled(width, height, Qt::IgnoreAspectRatio, Qt::SmoothTransformation) ;
+    QImage img = scaled(width, height, Qt::IgnoreAspectRatio, Qt::SmoothTransformation) ;
 
     // Create Output Folder
     QDir dir ;
@@ -177,6 +164,9 @@ PM::Err Face::exportTiles(ProgressDialog *prog, int targetimagesize, int tilesiz
         bool donex=false ;
         int x=0 ;
 
+        QCoreApplication::processEvents();
+        if (m_abort) { err = PM::OperationCancelled ; }
+
         do {
             // Calculate the width and height of the tile
             int sizex=tilesize ;
@@ -188,11 +178,6 @@ PM::Err Face::exportTiles(ProgressDialog *prog, int targetimagesize, int tilesiz
             if (((y+1)*tilesize)>=height) {
                 sizey=height-(y*tilesize) ;
                 doney=true ;
-            }
-
-            if (prog->isCancelled()) err = PM::OperationCancelled;
-            else {
-                prog->setValue(progstart+(100*((y*width)+(x*tilesize)))/(width*height)) ;
             }
 
             // Calculate the filename for the destination image
@@ -217,23 +202,8 @@ PM::Err Face::exportTiles(ProgressDialog *prog, int targetimagesize, int tilesiz
     return err ;
 }
 
-
-int Face::width()
+void Face::handleAbort()
 {
-    return m_image.width() ;
-}
-
-int Face::height()
-{
-    return m_image.height() ;
-}
-
-const Face Face::scaled(int w, int h)
-{
-    return (Face) (m_image.scaled(w, h, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)) ;
-}
-
-bool Face::save(QString filename)
-{
-    return m_image.save(filename) ;
+    m_abort = true ;
+    emit(abort()) ;
 }

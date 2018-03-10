@@ -93,38 +93,38 @@ bool SceneViewWidget::loadScene(NodeList *nodes, Face &front, Face &right, Face 
     m_selection = "" ;
 
     if (m_front) delete m_front ;
-    m_front = new QOpenGLTexture(front.image().mirrored()) ;
+    m_front = new QOpenGLTexture(front.mirrored()) ;
     m_front->setMinificationFilter(QOpenGLTexture::Nearest) ;
     m_front->setMagnificationFilter(QOpenGLTexture::Linear) ;
     m_front->setWrapMode(QOpenGLTexture::Repeat) ;
 
     if (m_right) delete m_right ;
-    m_right = new QOpenGLTexture(right.image().mirrored()) ;
+    m_right = new QOpenGLTexture(right.mirrored()) ;
     m_right->setMinificationFilter(QOpenGLTexture::Nearest) ;
     m_right->setMagnificationFilter(QOpenGLTexture::Linear) ;
     m_right->setWrapMode(QOpenGLTexture::Repeat) ;
 
     if (m_rear) delete m_rear ;
-    m_rear = new QOpenGLTexture(rear.image().mirrored()) ;
+    m_rear = new QOpenGLTexture(rear.mirrored()) ;
     m_rear->setMinificationFilter(QOpenGLTexture::Nearest) ;
     m_rear->setMagnificationFilter(QOpenGLTexture::Linear) ;
     m_rear->setWrapMode(QOpenGLTexture::Repeat) ;
 
     if (m_left) delete m_left ;
-    m_left = new QOpenGLTexture(left.image().mirrored()) ;
+    m_left = new QOpenGLTexture(left.mirrored()) ;
     m_left->setMinificationFilter(QOpenGLTexture::Nearest) ;
     m_left->setMagnificationFilter(QOpenGLTexture::Linear) ;
     m_left->setWrapMode(QOpenGLTexture::Repeat) ;
 
     if (m_top) delete m_top ;
-    m_top = new QOpenGLTexture(top.image().mirrored()) ;
+    m_top = new QOpenGLTexture(top.mirrored()) ;
     m_top->setMinificationFilter(QOpenGLTexture::Nearest) ;
     m_top->setMagnificationFilter(QOpenGLTexture::Linear) ;
     m_top->setWrapMode(QOpenGLTexture::Repeat) ;
 
 
     if (m_bottom) delete m_bottom ;
-    m_bottom = new QOpenGLTexture(bottom.image().mirrored()) ;
+    m_bottom = new QOpenGLTexture(bottom.mirrored()) ;
     m_bottom->setMinificationFilter(QOpenGLTexture::Nearest) ;
     m_bottom->setMagnificationFilter(QOpenGLTexture::Linear) ;
     m_bottom->setWrapMode(QOpenGLTexture::Repeat) ;

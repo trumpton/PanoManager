@@ -21,10 +21,10 @@
 #ifndef MAPTRANSLATION_H
 #define MAPTRANSLATION_H
 
+#include <QObject>
 #include <QString>
 #include <QFile>
 #include <QDataStream>
-#include "../../dialogs/progress/progressdialog.h"
 #include "../../errors/pmerrors.h"
 
 typedef struct {
@@ -38,9 +38,13 @@ typedef struct {
 } MapCoordinate ;
 
 
-class MapTranslation
+class MapTranslation : public QObject
 {
+    Q_OBJECT
+
 private:
+    bool m_abort ;
+
     // Input files and data streams
     QFile m_file ;
     QDataStream m_in ;
@@ -64,7 +68,7 @@ private:
     QString mapPath(int type, int srcx, int srcy, int dstxy) ;
 
     // Build a new map, and save in the user's application cache folder
-    PM::Err buildAndSave(ProgressDialog *prog, unsigned short srcx, unsigned short srcy, unsigned short dstxy) ;
+    PM::Err buildAndSave(unsigned short srcx, unsigned short srcy, unsigned short dstxy) ;
 
     // Open the files
     PM::Err openFile(int face, unsigned short srcx, unsigned short srcy, unsigned short dstxy) ;
@@ -77,7 +81,7 @@ public:
     int dstxy() ;
 
     // Start a new map translation, building a new map if necessary
-    PM::Err start(ProgressDialog *prog, int face, unsigned short srcx, unsigned short srcy, unsigned short dstxy) ;
+    PM::Err start(int face, unsigned short srcx, unsigned short srcy, unsigned short dstxy) ;
 
     // Get the next coordinate mapping for face f from cache files
     // Returned face=-1 on end of file or error
@@ -85,6 +89,12 @@ public:
 
     // Finish the map translation, and close cache files
     bool end() ;
+
+public slots:
+    void handleAbort() ;
+
+signals:
+    void progressUpdate(QString message) ;
 
 };
 

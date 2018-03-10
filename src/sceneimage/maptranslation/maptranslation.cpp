@@ -102,8 +102,9 @@
 
 #define MAGIC (unsigned short)0x13FE
 
-MapTranslation::MapTranslation()
+MapTranslation::MapTranslation() : QObject(0)
 {
+    m_abort = false ;
     m_dstxy=0 ;
     m_savefolder = QStandardPaths::writableLocation(QStandardPaths::CacheLocation) ;
     QDir dir(m_savefolder) ;
@@ -127,15 +128,10 @@ QString MapTranslation::mapPath(int face, int srcx, int srcy, int dstxy)
     return  m_savefolder + "/translationmatrix_" + QString::number(srcx) + "x" + QString::number(srcy) + "_" + QString::number(dstxy) + ext ;
 }
 
-// Advances prog by 100
-PM::Err MapTranslation::start(ProgressDialog *prog, int face, unsigned short srcx, unsigned short srcy, unsigned short dstxy)
+PM::Err MapTranslation::start(int face, unsigned short srcx, unsigned short srcy, unsigned short dstxy)
 {
-    if (!prog) return PM::InvalidPointer ;
 
-    int progstart = prog->value() ;
-
-    prog->setText2(QString("Loading Translation Map"));
-
+    m_abort = false ;
     end() ;
 
     PM::Err err = PM::Ok ;
@@ -146,15 +142,19 @@ PM::Err MapTranslation::start(ProgressDialog *prog, int face, unsigned short src
     if (err==PM::Ok) {
 
         // Attempt to open
+        emit(progressUpdate("Loading Translation Map")) ;
         err = openFile(face, srcx, srcy, dstxy) ;
 
         if (err!=PM::Ok) {
             // Open failed, so attempt to build then open
-            err = buildAndSave(prog, srcx, srcy, dstxy) ;
-            if (err==PM::Ok) err = openFile(face, srcx, srcy, dstxy)  ;
+            emit(progressUpdate("Building Translation Map")) ;
+            err = buildAndSave(srcx, srcy, dstxy) ;
+            if (err==PM::Ok) {
+                    emit(progressUpdate("Loading Translation Map")) ;
+                    err = openFile(face, srcx, srcy, dstxy)  ;
+            }
         }
     }
-    prog->setValue(progstart+100) ;
     return err ;
 }
 
@@ -283,17 +283,14 @@ PM::Err MapTranslation::openFile(int face, unsigned short srcx, unsigned short s
 // Create the maps for the six faces, from equirectangular to cubemap
 // Based on: https://stackoverflow.com/questions/29678510/convert-21-equirectangular-panorama-to-cube-map
 // Advances prog on by 100
-PM::Err MapTranslation::buildAndSave(ProgressDialog *prog, unsigned short srcx, unsigned short srcy, unsigned short dstxy) {
+PM::Err MapTranslation::buildAndSave(unsigned short srcx, unsigned short srcy, unsigned short dstxy) {
 
-    if (!prog) return PM::InvalidPointer ;
     if (m_savefolder.isEmpty()) return PM::OutputNotDefined ;
 
-    int progstart = prog->value() ;
-
-    prog->setText2(QString("Building Translation Map"));
     QFile file[2] ;
     QDataStream out[2] ;
 
+    m_abort = false ;
     m_srcx = srcx ;
     m_srcy = srcy ;
     m_dstxy = dstxy ;
@@ -304,7 +301,6 @@ PM::Err MapTranslation::buildAndSave(ProgressDialog *prog, unsigned short srcx, 
         QString fileName = mapPath(f*4, srcx, srcy, dstxy) ;
         file[f].setFileName(fileName);
 
-        qInfo("Creating Map Translation: %s", fileName) ;
         if (!file[f].open(QIODevice::WriteOnly)) {
             err = PM::InvalidMapTranslation ;
         } else {
@@ -353,19 +349,15 @@ PM::Err MapTranslation::buildAndSave(ProgressDialog *prog, unsigned short srcx, 
     // calculate the corresponding source coordinates.
     for(unsigned short y = 0; err==PM::Ok && y < iheight; y++) {
 
-        // Allow app events to be processed as this building is quite intensive and lengthy
-        if (y%50==1) {
-            prog->setValue(progstart + ( y * 100 ) / (iheight) ) ;
-            // TODO: need a cleaner exit than this
-            if (prog->isCancelled()) err=PM::OperationCancelled ;
-        }
-
         // Map face pixel coordinates to [-1, 1] on plane
         nx = (double)y / height - 0.5f;
         nx *= 2;
         // Map [-1, 1] plane coords to [-an, an] thats the coordinates in respect to a unit sphere that contains our box.
         nx *= an;
         nxsquared = nx * nx ;
+
+        QCoreApplication::processEvents();
+        if (m_abort) { err = PM::OperationCancelled ; }
 
         for(unsigned short x = 0; x < iwidth; x++) {
 
@@ -429,3 +421,7 @@ PM::Err MapTranslation::buildAndSave(ProgressDialog *prog, unsigned short srcx, 
     return err ;
 }
 
+void MapTranslation::handleAbort()
+{
+    m_abort = true ;
+}
