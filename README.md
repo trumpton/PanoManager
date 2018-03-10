@@ -15,6 +15,14 @@ Tours can currently be created for 'Pannellum' and 'Marzipano', and a snapshot o
 
 Once exported, Pano Manager can launch a third-party web server (e.g. using php) so that the output can be viewed on a local disk, but using a web browser.
 
+## Use
+
+panomanager [ -h ] [ -f|F ] [ -n|N ]
+
+  -n|N  -  Selects which file dialogs to use (-n = Qt, -N = System).
+  -f|F  -  Selects which fonts to use (-f = Built-in DejaVu, -F = System).
+
+
 ## Licencing
 
 The following Licences apply:
