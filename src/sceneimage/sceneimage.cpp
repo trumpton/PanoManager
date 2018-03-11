@@ -29,11 +29,14 @@
 
 SceneImage::SceneImage() : QObject()
 {
+    clear() ;
 }
-
 
 void SceneImage::clear()
 {
+    m_loadMax=0 ;
+    m_loadPos=0 ;
+    m_buildFace=0 ;
     m_filename = "" ;
     m_facedir = "" ;
     m_abort = false ;
@@ -55,16 +58,16 @@ PM::Err SceneImage::loadImage(QString imagefile, bool loadpreview, bool buildpre
    m_filename = imagefile ;
    m_facedir = finfo.canonicalPath() + "/" + finfo.baseName();
 
-   if (!facesExist(m_filename) && !buildpreview) {
+   bool dobuild = (!facesExist(m_filename) && !buildpreview)                        // Full Res
+                || (!previewExists(m_filename) && (loadpreview || buildpreview)) ;  // Preview
 
-       // Build full res face
-       err = buildFaces(false) ;
+   m_loadPos=0 ;
+   if (dobuild) m_loadMax=100 ;
+   if (!buildonly) m_loadMax+=100 ;
 
-   } else if (!previewExists(m_filename) && (loadpreview || buildpreview)) {
-
-       // Build Preview if it is needed for loading, or requested for building
+   if  (dobuild) {
        err = buildFaces(buildpreview) ;
-
+       m_loadPos=100 ;
    }
 
    if (err==PM::Ok && !buildonly) {
@@ -137,7 +140,8 @@ PM::Err SceneImage::loadFaces(bool loadpreview, bool scaleforpreview)
                 emit(progressUpdate(QString("Scaling Face: ") + QString::number(f))) ;
                 m_faces[f] = m_faces[f].scaled(512, 512) ;
             }
-            emit(percentUpdate((f*100)/6)) ;
+            int prog = m_loadPos+(100*f)/6 ;
+            emit(percentUpdate( (prog*100)/m_loadMax )) ;
         } else {
             if (loadpreview) {
                 err = PM::PreviewLoadError ;
@@ -222,7 +226,7 @@ PM::Err SceneImage::buildFaces(bool buildpreview) {
     }
 
     for (int f=0; err==PM::Ok && f<6; f++) {
-        m_f = f ;
+        m_buildFace = f ;
         if (err==PM::Ok) {
 
             Face face ;
@@ -262,5 +266,6 @@ void SceneImage::handleAbort()
 // Handle % processing of face function
 void SceneImage::handlePercentUpdate(int percent)
 {
-    emit(percentUpdate((percent + m_f*100)/6)) ;
+    int prog = (100*(m_loadPos+(100*m_buildFace+percent))/(6*m_loadMax)) ;
+    emit(percentUpdate( prog )) ;
 }

@@ -92,6 +92,8 @@ private:
     Ui::MainWindow *ui;
     QString m_currentScene, m_lastSceneScene ;
     QString m_currentNode, m_lastNode, m_lastNodeScene ;
+    int m_buildHiresPos ;
+
     void changeScene(QString id) ;
     void refreshScenes(QString selectedScene) ;
     void refreshNodes(QString selectedNode) ;
@@ -106,6 +108,8 @@ private:
 
 public slots:
     void handleProgressUpdate(QString message) ;
+    void handleChangeScenePercentUpdate(int percent) ;
+    void handleBuildHiresPercentUpdate(int percent) ;
 
 };
 

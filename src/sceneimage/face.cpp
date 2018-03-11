@@ -91,6 +91,9 @@ PM::Err Face::build(QImage source, int f, int size)
     disconnect(this, SIGNAL(abort()), &map, SLOT(handleAbort())) ;
     disconnect(&map, SIGNAL(progressUpdate(int,QString)), this, SLOT(mapStartUpdated(int,QString))) ;
 
+    // Map Building = 25%
+    emit(percentUpdate(25));
+
     if (err!=PM::Ok) return err ;
 
     emit(progressUpdate(QString("Building Face: ") + QString::number(f))) ;
@@ -106,8 +109,8 @@ PM::Err Face::build(QImage source, int f, int size)
         coord=map.next() ;
 
         if (coord->dstx==0) {
-            //QCoreApplication::processEvents();
-            qApp->processEvents();
+            QCoreApplication::processEvents();
+            emit(percentUpdate(25 + (coord->srcy*75)/srcy));
             if (m_abort) { err = PM::OperationCancelled ; }
         }
 

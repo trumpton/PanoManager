@@ -37,7 +37,11 @@ private:
     QString m_facedir ;
     Face m_faces[6] ;
     bool m_ispreview ;
-    int m_f ; // Counter used to report % progress
+
+    // Counter used to report % progress
+    int m_loadMax ;
+    int m_loadPos ;
+    int m_buildFace ;
 
     PM::Err buildFaces(bool buildpreview=false) ;
     PM::Err loadFaces(bool loadpreview, bool scaleforpreview = true) ;

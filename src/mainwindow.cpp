@@ -416,6 +416,11 @@ void MainWindow::on_scenes_listWidget_itemClicked(QListWidgetItem *item)
 
 }
 
+void MainWindow::handleChangeScenePercentUpdate(int percent)
+{
+    m_prog.setValue(percent) ;
+}
+
 void MainWindow::changeScene(QString id)
 {
     int north ;
@@ -430,15 +435,15 @@ void MainWindow::changeScene(QString id)
         bool loadhires = ui->action_Load_Hi_Res_If_Avail->isChecked() ;
 
         m_prog.setTitle("Changing Scene") ;
-        m_prog.setMaximum(200);
+        m_prog.setText1("Loading Scene: " + selectedScene.title()) ;
+        m_prog.setMaximum(100);
         m_prog.show() ;
 
+        connect(&sceneimage, SIGNAL(percentUpdate(int)), this, SLOT(handleChangeScenePercentUpdate(int))) ;
         err=DoBuild(selectedScene.filename(), &sceneimage, 0, 1, !loadhires, true, true, false) ;
-
+        disconnect(&sceneimage, SIGNAL(percentUpdate(int)), this, SLOT(handleChangeScenePercentUpdate(int))) ;
 
         if (err==PM::Ok) {
-
-            m_prog.addValue(100) ;
 
             // Load Scene
             ui->display->loadScene(&selectedScene.nodes(), sceneimage.getFace(0), sceneimage.getFace(1), sceneimage.getFace(2), sceneimage.getFace(3), sceneimage.getFace(4), sceneimage.getFace(5)) ;
@@ -890,27 +895,39 @@ void MainWindow::on_action_New_Project_triggered()
 // on_action_Build_Hi_Res_Scenes_triggered
 //
 
+void MainWindow::handleBuildHiresPercentUpdate(int percent)
+{
+    m_prog.setValue(m_buildHiresPos+percent) ;
+}
+
 void MainWindow::on_action_Build_Hi_Res_Scenes_triggered()
 {
     qDebug() << "Build_Hi_Res_Scenes()" ;
 
-    QStringList files ;
+    QList<int> scenesList ;
+
     int numscenes = project.scenes().count() ;
     for (int i=0; i<numscenes; i++) {
-        files.append(project.sceneAt(i).filename()) ;
+        scenesList.append(i) ;
     }
 
     SceneImage img ;
-    int n = files.size() ;
+    int n = scenesList.size() ;
     m_prog.setTitle("Batch Scene Build") ;
     m_prog.setMaximum(n*100);
     m_prog.show() ;
 
     PM::Err err = PM::Ok ;
 
+    m_buildHiresPos=0 ;
     for (int i=0; err==PM::Ok && i<n; i++) {
-        err=DoBuild(files.at(i), &img, i, n, false, false, true, true) ;
-        if (err==PM::Ok) m_prog.addValue(100) ;
+        int idx = scenesList.at(i) ;
+        Scene& thisScene = project.sceneAt(idx) ;
+        m_prog.setText1("Building Scene: " + thisScene.title()) ;
+        connect(&img, SIGNAL(percentUpdate(int)), this, SLOT(handleBuildHiresPercentUpdate(int))) ;
+        err=DoBuild(thisScene.filename(), &img, i, n, false, false, true, true) ;
+        disconnect(&img, SIGNAL(percentUpdate(int)), this, SLOT(handleBuildHiresPercentUpdate(int))) ;
+        m_buildHiresPos+=100 ;
     }
     m_prog.hide() ;
     if (err!=PM::Ok) {
@@ -925,8 +942,6 @@ void MainWindow::on_action_Build_Hi_Res_Scenes_triggered()
 PM::Err MainWindow::DoBuild(QString file, SceneImage *scene, int seq, int of, bool loadpreview, bool buildpreview, bool scaleforpreview, bool buildonly)
 {
     PM::Err err = PM::Ok ;
-    m_prog.setTitle("Building") ;
-    m_prog.setText1("scene " + QString::number(seq)) ;
     m_sceneNum = seq ;
     connect(scene, SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
     connect(&m_prog, SIGNAL(abortPressed()), scene, SLOT(handleAbort())) ;

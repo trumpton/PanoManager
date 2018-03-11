@@ -201,7 +201,7 @@ void MainWindow::on_action_ExportPanellum_triggered()
 //
 void MainWindow::exportPanellumFiles(QString folder, QString title)
 {
-    QFile htmlin(":/PannellumFiles/tour.html") ;
+    QFile htmlin(":/pannellum/tour.html") ;
     htmlin.open(QIODevice::ReadOnly) ;
     QString htmldata(htmlin.readAll()) ;
     htmlin.close() ;
@@ -219,13 +219,13 @@ void MainWindow::copyResourceFolder(QString foldersrc, QString dest, bool forceO
 {
     QDir d ;
     d.mkdir(dest) ;
-    copyFile(":/PannellumFiles/pannellum.js", dest + QString("/pannellum.js"), forceOverwrite) ;
-    copyFile(":/PannellumFiles/pannellum.css", dest + QString("/pannellum.css"), forceOverwrite) ;
-    copyFile(":/PannellumFiles/changelog.md", dest + QString("/changelog.md"), forceOverwrite) ;
-    copyFile(":/PannellumFiles/COPYING", dest + QString("/COPYING"), forceOverwrite) ;
-    copyFile(":/PannellumFiles/pannellum.htm", dest + QString("/pannellum.htm"), forceOverwrite) ;
-    copyFile(":/PannellumFiles/readme.md", dest + QString("/readme.md"), forceOverwrite) ;
-    copyFile(":/PannellumFiles/VERSION", dest + QString("/VERSION"), forceOverwrite) ;
+    copyFile(":/pannellum/pannellum.js", dest + QString("/pannellum.js"), forceOverwrite) ;
+    copyFile(":/pannellum/pannellum.css", dest + QString("/pannellum.css"), forceOverwrite) ;
+    copyFile(":/pannellum/changelog.md", dest + QString("/changelog.md"), forceOverwrite) ;
+    copyFile(":/pannellum/COPYING", dest + QString("/COPYING"), forceOverwrite) ;
+    copyFile(":/pannellum/pannellum.htm", dest + QString("/pannellum.htm"), forceOverwrite) ;
+    copyFile(":/pannellum/readme.md", dest + QString("/readme.md"), forceOverwrite) ;
+    copyFile(":/pannellum/VERSION", dest + QString("/VERSION"), forceOverwrite) ;
 }
 
 void MainWindow::copyFile(QString source, QString dest, bool forceOverwrite)
