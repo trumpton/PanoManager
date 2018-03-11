@@ -19,8 +19,8 @@ Once exported, Pano Manager can launch a third-party web server (e.g. using php)
 
 panomanager [ -h ] [ -f|F ] [ -n|N ]
 
-  -n|N  -  Selects which file dialogs to use (-n = Qt, -N = System).
-  -f|F  -  Selects which fonts to use (-f = Built-in DejaVu, -F = System).
+  -n|N  -  Selects which file dialogs to use: -n = Qt (default), -N = System.
+  -f|F  -  Selects which fonts to use: -f = Built-in DejaVu, -F = System (default).
 
 
 ## Licencing

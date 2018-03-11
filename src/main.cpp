@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    bool useNativeFileDialog = true ;
+    bool useNativeFileDialog = false ;
     bool useSystemFonts = true ;
 
     int c ;
@@ -49,10 +49,10 @@ int main(int argc, char *argv[])
             case 'h':
             case '?':
                 printf("panomanager [-h] [-n|N] [-f|F]\n") ;
-                printf(" -N       Use Native File Dialog\n") ;
+                printf(" -N       Use Native File Dialog (default)\n") ;
                 printf(" -n       Use System File Dialog\n") ;
                 printf(" -f       Use in-built Fonts\n") ;
-                printf(" -F       Use System Fonts\n") ;
+                printf(" -F       Use System Fonts (default)\n") ;
                 break ;
         }
     }
