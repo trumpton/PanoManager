@@ -39,6 +39,7 @@ ProgressDialog::~ProgressDialog()
 
 void ProgressDialog::show()
 {
+    m_isCancelled=false ;
     QDialog::show() ;
     qApp->processEvents() ;
 }
@@ -48,6 +49,7 @@ void ProgressDialog::setMaximum(int max)
     m_savePos=0 ;
     ui->progressBar->setMinimum(0) ;
     ui->progressBar->setMaximum(max);
+    ui->progressBar->setValue(0) ;
 }
 
 int ProgressDialog::value()
@@ -103,6 +105,7 @@ void ProgressDialog::setText2(QString text)
 
 void ProgressDialog::setTitle(QString title)
 {
+    m_isCancelled=false ;
     setWindowTitle(title) ;
     ui->text1->setText("") ;
     ui->text2->setText("") ;
