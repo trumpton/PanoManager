@@ -63,7 +63,7 @@ private slots:
     void on_nodetype_comboBox_currentIndexChanged(int index);
     void on_nodedestination_comboBox_currentIndexChanged(int index);
     void on_nodedescription_plainTextEdit_textChanged();
-    void on_nodetitle_lineEdit_textChanged(const QString &arg1);
+    void on_nodetitle_lineEdit_editingFinished();
     void on_turnAround_pushButton_clicked();
     void on_nodeDelete_pushButton_clicked();
     void on_deletescene_pushButton_clicked();
@@ -72,7 +72,7 @@ private slots:
     void on_nodeGo_pushButton_clicked();
     void on_node_arrivalLat_lineEdit_textEdited(const QString &arg1);
     void on_node_arrivalLon_lineEdit_textEdited(const QString &arg1);
-    void on_sceneTitle_lineEdit_textChanged(const QString &arg1);
+    void on_sceneTitle_lineEdit_editingFinished();
     void on_action_ExportPanellum_triggered();
     void on_action_ExportMarzipano_triggered();
     void on_action_Properties_triggered();
@@ -90,7 +90,7 @@ private:
     Project project ;
     QSettings *settings;
     Ui::MainWindow *ui;
-    QString m_currentScene, m_lastSceneScene ;
+    QString m_currentScene ;
     QString m_currentNode, m_lastNode, m_lastNodeScene ;
     int m_buildHiresPos ;
 

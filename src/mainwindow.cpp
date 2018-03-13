@@ -159,19 +159,19 @@ void MainWindow::refreshScenes(QString selectedScene)
         }
     }
 
-    // Update current scene to match selected
     if (project.scene(selectedScene).isValid()) {
-        // Current Scene is the one identified
+        // Update current scene to match selected
         m_currentScene=selectedScene ;
-    } else {
-        QListWidgetItem *lwi = ui->scenes_listWidget->item(0) ;
-        if (lwi) {
-            // Current Scene is first in the list
-            m_currentScene = lwi->data(Qt::UserRole).toString() ;
-        } else {
-            // There is no current scene (list is empty)
-            m_currentScene="" ;
+        QListWidgetItem *item = findListWidgetItemById(ui->scenes_listWidget, m_currentScene) ;
+        if (item && ui->scenes_listWidget->currentItem()!=item) {
+            ui->scenes_listWidget->clearSelection() ;
+            ui->scenes_listWidget->setCurrentItem(item, QItemSelectionModel::Select) ;
         }
+    } else {
+        // Unset the current item
+        ui->scenes_listWidget->setCurrentRow(-1) ;
+        ui->scenes_listWidget->clearSelection() ;
+        m_currentScene="" ;
     }
 
     // Refresh Node Destinations
@@ -257,6 +257,13 @@ void MainWindow::refreshNodes(QString selectedNode)
         }
     }
 
+    // TODO: !!!!!!!
+    // Don't set m_currentNode at the start
+    // check to see if selectedNode!=m_currentNode to identify change
+    // and then select it (or not)
+    // In theory, shouldn't need to use m_lastNodeScene, as we clear
+    // the nodelist when the scene changes anyway
+
     // Populate Node Details
     if (m_currentNode.isEmpty()) {
 
@@ -269,6 +276,7 @@ void MainWindow::refreshNodes(QString selectedNode)
         ui->nodedescription_plainTextEdit->document()->clear() ;
         ui->nodeUrl_lineEdit->clear() ;
         ui->nodedestination_comboBox->setCurrentIndex(-1) ;
+        ui->node_listWidget->setCurrentRow(-1) ;
 
     } else if (m_currentNode.compare(m_lastNode)!=0) {
 
@@ -357,8 +365,6 @@ void MainWindow::on_addscene_pushButton_clicked()
         newScene.setNorthOffset(0) ;
         project.scenes().append(newScene) ;
         changeScene(newScene.id()) ;
-//        refreshScenes(project.sceneAt(project.scenes().count()-1).id()) ;
-//        refreshNodes("") ;
     }
     qDebug() << "Add_Scene() complete" ;
 }
@@ -376,14 +382,8 @@ void MainWindow::on_deletescene_pushButton_clicked()
         // Remove the scene from the display, then the scenes list, then refresh
         ui->display->clearScene() ;
         project.removeScene(m_currentScene) ;
-
-        // Select first item on list if available
-        if (ui->scenes_listWidget->currentItem()<0 && project.sceneCount()>0) {
-            refreshScenes(ui->scenes_listWidget->item(0)->data(Qt::UserRole).toString()) ;
-            ui->scenes_listWidget->item(0)->setSelected(true) ;
-        } else {
-            refreshScenes("") ;
-        }
+        refreshScenes("") ;
+        refreshNodes("") ;
     }
 
 
@@ -403,9 +403,7 @@ void MainWindow::on_scenes_listWidget_itemClicked(QListWidgetItem *item)
         newsceneId = item->data(Qt::UserRole).toString() ;
     }
 
-    if (m_lastSceneScene.compare(newsceneId)==0) return ;
-    m_lastSceneScene = newsceneId ;
-
+    if (m_currentScene.compare(newsceneId)==0) return ;
 
     qDebug() << "scenes_listWidget_itemClicked(" << newsceneId << ")" ;
 
@@ -424,14 +422,14 @@ void MainWindow::handleChangeScenePercentUpdate(int percent)
 void MainWindow::changeScene(QString id)
 {
     int north ;
+    QString title ;
     PM::Err err = PM::Ok ;
 
     Scene& selectedScene = project.scene(id) ;
 
     if (project.scene(selectedScene.id()).isValid()) {
 
-        // Build and Load new scene
-        north = selectedScene.northOffset() ;
+        // Build and Load new scene       
         bool loadhires = ui->action_Load_Hi_Res_If_Avail->isChecked() ;
 
         m_prog.setTitle("Changing Scene") ;
@@ -448,32 +446,28 @@ void MainWindow::changeScene(QString id)
             // Load Scene
             ui->display->loadScene(&selectedScene.nodes(), sceneimage.getFace(0), sceneimage.getFace(1), sceneimage.getFace(2), sceneimage.getFace(3), sceneimage.getFace(4), sceneimage.getFace(5)) ;
 
-            // Update scene and node list
-            refreshScenes(id) ;
-            ui->display->setNorthCompassLon(north);
-            refreshNodes("") ;
-
-            // Update scene title
-            ui->sceneTitle_lineEdit->setText(project.scene(id).title()) ;
-
-            // Ensure Current Scene is selected
-            QListWidgetItem *lwi = findListWidgetItemById(ui->scenes_listWidget, id) ;
-            if (lwi) lwi->setSelected(true) ;
-
-            // Ensure no node is selected
-            if (ui->node_listWidget->currentItem())
-                ui->node_listWidget->currentItem()->setSelected(false) ;
-
-            m_prog.addValue(100) ;
+            // Update scene title & North
+            north = selectedScene.northOffset() ;
+            title = selectedScene.title() ;
 
         } else {
 
             QMessageBox::critical(nullptr, QString("Error Changing Scene"), PM::errString(err)) ;
-            north=0 ;
-            id="" ;
+
+            // Clear Scene
             ui->display->clearScene() ;
 
+            // Update scene title & North
+            north=0 ;
+            title = "" ;
+
         }
+
+        // Update scene and node list
+        refreshScenes(id) ;
+        ui->display->setNorthCompassLon(north);
+        refreshNodes("") ;
+        ui->sceneTitle_lineEdit->setText(title) ;
 
         m_prog.hide() ;
 
@@ -509,17 +503,18 @@ void MainWindow::on_setNorth_pushButton_clicked()
 
 //----------------------------------------------------------------------------------------------------------------------
 //
-// on_sceneTitle_lineEdit_textChanged
+// on_sceneTitle_lineEdit_editingFinished
 //
-void MainWindow::on_sceneTitle_lineEdit_textChanged(const QString &arg1)
+void MainWindow::on_sceneTitle_lineEdit_editingFinished()
 {
     Scene& scene = project.scene(m_currentScene) ;
+    QString arg1 = ui->sceneTitle_lineEdit->text() ;
     if (scene.title().compare(arg1)!=0) {
         scene.setTitle(arg1) ;
         refreshScenes(m_currentScene) ;
     }
-}
 
+}
 
 //======================================================================================================================
 //
@@ -705,7 +700,7 @@ void MainWindow::on_node_arrivalLon_lineEdit_textEdited(const QString &arg1)
 // on_nodetitle_lineEdit_textChanged
 //
 
-void MainWindow::on_nodetitle_lineEdit_textChanged(const QString &arg1)
+void MainWindow::on_nodetitle_lineEdit_editingFinished()
 {
     Node& node = project.scene(m_currentScene).node(m_currentNode) ;
     QString text = ui->nodetitle_lineEdit->text() ;
@@ -806,7 +801,8 @@ void MainWindow::on_action_Open_Project_triggered()
         project.OpenProject(fileName) ;
         ui->scenes_groupBox->setEnabled(true) ;
         ui->display->setCamera(0, 0) ;
-
+        ui->display->setNorthCompassLon(0);
+        ui->sceneTitle_lineEdit->setText("") ;
         refreshScenes("") ;
         refreshNodes("") ;
     }
@@ -878,6 +874,8 @@ void MainWindow::on_action_New_Project_triggered()
     ui->node_arrivalLon_lineEdit->setText(0) ;
     settings->setValue("lastfilename", "") ;
     ui->display->setCamera(0, 0) ;
+    ui->display->setNorthCompassLon(0);
+    ui->sceneTitle_lineEdit->setText("") ;
     refreshScenes("") ;
     refreshNodes("") ;
 
@@ -1001,4 +999,5 @@ void MainWindow::on_actionE_xit_triggered()
 
     this->close() ;
 }
+
 
