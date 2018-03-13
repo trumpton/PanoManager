@@ -19,6 +19,7 @@
 //
 
 #include "sceneimage.h"
+#include "maptranslation/maptranslation.h"
 #include <math.h>
 #include <QDir>
 #include <QRgb>
@@ -36,7 +37,7 @@ void SceneImage::clear()
 {
     m_loadMax=0 ;
     m_loadPos=0 ;
-    m_buildFace=0 ;
+    m_buildLoadFace=0 ;
     m_filename = "" ;
     m_facedir = "" ;
     m_abort = false ;
@@ -62,6 +63,7 @@ PM::Err SceneImage::loadImage(QString imagefile, bool loadpreview, bool buildpre
                 || (!previewExists(m_filename) && (loadpreview || buildpreview)) ;  // Preview
 
    m_loadPos=0 ;
+   m_loadMax=0 ;
    if (dobuild) m_loadMax=100 ;
    if (!buildonly) m_loadMax+=100 ;
 
@@ -131,17 +133,22 @@ PM::Err SceneImage::loadFaces(bool loadpreview, bool scaleforpreview)
 
     PM::Err err = PM::Ok ;
     m_ispreview = loadpreview ;
+    m_buildLoadSteps = 6 ;
 
     for (int f=0; err==PM::Ok && f<6; f++) {
-        emit(progressUpdate(QString("Loading Face: ") + QString::number(f))) ;
+        m_buildLoadFace=f ;
         QString path = m_facedir + "/face00" + QString::number(f) + QString(loadpreview?"_preview.png":".png") ;
+
+        emit(progressUpdate(QString("Loading Face: ") + QString::number(f))) ;
+        connect(&m_faces[f], SIGNAL(percentUpdate(int)), this, SLOT(handlePercentUpdate(int))) ;
+        connect(&m_faces[f], SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
+        connect(this, SIGNAL(abort()), &m_faces[f], SLOT(handleAbort())) ;
+
         if (m_faces[f].load(path)) {
             if (scaleforpreview) {
                 emit(progressUpdate(QString("Scaling Face: ") + QString::number(f))) ;
                 m_faces[f] = m_faces[f].scaled(512, 512) ;
             }
-            int prog = m_loadPos+(100*f)/6 ;
-            emit(percentUpdate( (prog*100)/m_loadMax )) ;
         } else {
             if (loadpreview) {
                 err = PM::PreviewLoadError ;
@@ -149,6 +156,12 @@ PM::Err SceneImage::loadFaces(bool loadpreview, bool scaleforpreview)
                 err = PM::FaceLoadError ;
             }
         }
+
+        disconnect(this, SIGNAL(abort()), &m_faces[f], SLOT(handleAbort())) ;
+        disconnect(&m_faces[f], SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
+        disconnect(&m_faces[f], SIGNAL(percentUpdate(int)), this, SLOT(handlePercentUpdate(int))) ;
+
+
     }
     return err ;
 }
@@ -225,26 +238,46 @@ PM::Err SceneImage::buildFaces(bool buildpreview) {
         err = PM::OutputWriteError ;
     }
 
+    MapTranslation map ;
+
+    m_buildLoadFace=0 ;
+
+    if (map.exists(scaledfilewidth, scaledfileheight, workingsize)) {
+        m_buildLoadSteps = 6 ;
+    } else {
+        emit(progressUpdate(QString("Building Translation Maps"))) ;
+        m_buildLoadSteps = 7 ;
+        connect(&map, SIGNAL(progressUpdate(int,QString)), this, SLOT(mapStartUpdated(int,QString))) ;
+        connect(&map, SIGNAL(percentUpdate(int)), this, SLOT(handlePercentUpdate(int))) ;
+        connect(this, SIGNAL(abort()), &map, SLOT(handleAbort())) ;
+        err = map.build(scaledfilewidth, scaledfileheight, workingsize) ;
+        disconnect(this, SIGNAL(abort()), &map, SLOT(handleAbort())) ;
+        disconnect(&map, SIGNAL(percentUpdate(int)), this, SLOT(handlePercentUpdate(int))) ;
+        disconnect(&map, SIGNAL(progressUpdate(int,QString)), this, SLOT(mapStartUpdated(int,QString))) ;
+        m_buildLoadFace++ ;
+    }
+
+
     for (int f=0; err==PM::Ok && f<6; f++) {
-        m_buildFace = f ;
+
+        Face face ;
+
+        emit(progressUpdate(QString("Building Face: ") + QString::number(f)));
+        connect(&face, SIGNAL(percentUpdate(int)), this, SLOT(handlePercentUpdate(int))) ;
+        connect(&face, SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
+        connect(this, SIGNAL(abort()), &face, SLOT(handleAbort())) ;
+        err = face.build(map, scaledsource, f, workingsize) ;
+        disconnect(this, SIGNAL(abort()), &face, SLOT(handleAbort())) ;
+        disconnect(&face, SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
+        disconnect(&face, SIGNAL(percentUpdate(int)), this, SLOT(handlePercentUpdate(int))) ;
+
         if (err==PM::Ok) {
-
-            Face face ;
-            emit(progressUpdate(QString("Building Face: ") + QString::number(f)));
-            connect(&face, SIGNAL(percentUpdate(int)), this, SLOT(handlePercentUpdate(int))) ;
-            connect(&face, SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
-            connect(this, SIGNAL(abort()), &face, SLOT(handleAbort())) ;
-            err = face.build(scaledsource, f, workingsize) ;
-            disconnect(this, SIGNAL(abort()), &face, SLOT(handleAbort())) ;
-            disconnect(&face, SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
-            disconnect(&face, SIGNAL(percentUpdate(int)), this, SLOT(handlePercentUpdate(int))) ;
-
-            if (err==PM::Ok) {
-                emit(progressUpdate(QString("Saving Face: ") + QString::number(f)));
-                face = face.scaled(outputsize, outputsize) ;
-                face.save(m_facedir + "/face00" + QString::number(f) + QString(buildpreview?"_preview.png":".png")) ;
-            }
+            emit(progressUpdate(QString("Saving Face: ") + QString::number(f)));
+            face = face.scaled(outputsize, outputsize) ;
+            face.save(m_facedir + "/face00" + QString::number(f) + QString(buildpreview?"_preview.png":".png")) ;
         }
+
+        m_buildLoadFace++ ;
     }
 
     return err ;
@@ -266,6 +299,6 @@ void SceneImage::handleAbort()
 // Handle % processing of face function
 void SceneImage::handlePercentUpdate(int percent)
 {
-    int prog = (100*(m_loadPos+(100*m_buildFace+percent))/(6*m_loadMax)) ;
+    int prog = (m_loadPos+(100*m_buildLoadFace+percent))/m_buildLoadSteps ;
     emit(percentUpdate( prog )) ;
 }

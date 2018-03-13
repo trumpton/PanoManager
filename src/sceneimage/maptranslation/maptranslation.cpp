@@ -128,6 +128,22 @@ QString MapTranslation::mapPath(int face, int srcx, int srcy, int dstxy)
     return  m_savefolder + "/translationmatrix_" + QString::number(srcx) + "x" + QString::number(srcy) + "_" + QString::number(dstxy) + ext ;
 }
 
+bool MapTranslation::exists(unsigned short srcx, unsigned short srcy, unsigned short dstxy)
+{
+    int ok = true ;
+    for (int i=0; i<=1; i++) {
+        QString fileName = mapPath(i*4, srcx, srcy, dstxy) ;
+        QFile f(fileName) ;
+        unsigned long int size = f.size() ;
+        unsigned long int expectedsize = (dstxy*dstxy*(2*sizeof(short)+2*sizeof(char)) + 5*sizeof(unsigned short)) ;
+        if (size!=expectedsize) {
+            ok=false ;
+        }
+    }
+    return ok ;
+}
+
+
 PM::Err MapTranslation::start(int face, unsigned short srcx, unsigned short srcy, unsigned short dstxy)
 {
 
@@ -138,22 +154,11 @@ PM::Err MapTranslation::start(int face, unsigned short srcx, unsigned short srcy
 
     if (face<0 || face>5) err = PM::InputNotDefined ;
     if (srcx==0 || srcy==0 || dstxy==0) err = PM::InputNotDefined ;
+    if (err==PM::Ok && !exists(srcx, srcy, dstxy))  err=PM::InvalidMapTranslation ;
     if (err==PM::Ok && m_savefolder.isEmpty()) err = PM::OutputNotDefined ;
     if (err==PM::Ok) {
-
-        // Attempt to open
         emit(progressUpdate("Loading Translation Map")) ;
         err = openFile(face, srcx, srcy, dstxy) ;
-
-        if (err!=PM::Ok) {
-            // Open failed, so attempt to build then open
-            emit(progressUpdate("Building Translation Map")) ;
-            err = buildAndSave(srcx, srcy, dstxy) ;
-            if (err==PM::Ok) {
-                    emit(progressUpdate("Loading Translation Map")) ;
-                    err = openFile(face, srcx, srcy, dstxy)  ;
-            }
-        }
     }
     return err ;
 }
@@ -283,7 +288,7 @@ PM::Err MapTranslation::openFile(int face, unsigned short srcx, unsigned short s
 // Create the maps for the six faces, from equirectangular to cubemap
 // Based on: https://stackoverflow.com/questions/29678510/convert-21-equirectangular-panorama-to-cube-map
 // Advances prog on by 100
-PM::Err MapTranslation::buildAndSave(unsigned short srcx, unsigned short srcy, unsigned short dstxy) {
+PM::Err MapTranslation::build(unsigned short srcx, unsigned short srcy, unsigned short dstxy) {
 
     if (m_savefolder.isEmpty()) return PM::OutputNotDefined ;
 
@@ -356,6 +361,7 @@ PM::Err MapTranslation::buildAndSave(unsigned short srcx, unsigned short srcy, u
         nx *= an;
         nxsquared = nx * nx ;
 
+        emit(percentUpdate((y*100)/iheight)) ;
         QCoreApplication::processEvents();
         if (m_abort) { err = PM::OperationCancelled ; }
 

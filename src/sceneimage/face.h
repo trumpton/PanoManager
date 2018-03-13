@@ -25,6 +25,7 @@
 #include <QImage>
 #include <QObject>
 #include "../errors/pmerrors.h"
+#include "maptranslation/maptranslation.h"
 
 class Face : public QObject, public QImage
 {
@@ -43,12 +44,10 @@ public:
     void clear() ;
 
     // Build face 'f' of size 'size x size', from equirectangular image 'source'
-    // Advanced prog on by 100
-    PM::Err build(QImage source, int f, int size) ;
+    PM::Err build(MapTranslation& map, QImage source, int f, int size) ;
 
     // Export targetimageszie sized image made of tilessize sized tiles to outputFolder,
     // using mask to create individual files.
-    // Advances prog on by 100
     PM::Err exportTiles(int targetimagesize, int tilesize, QString outputFolder, QString mask) ;
 
     // Copy Face to Face
@@ -72,7 +71,6 @@ signals:
     void abort() ;
 
 public slots:
-    void handleProgressUpdate(QString message) ;
     void handleAbort() ;
 
 };

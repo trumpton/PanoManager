@@ -55,13 +55,6 @@ void Face::clear()
 
 
 ////////////////////////////////////////////////////////////////////
-//
-void Face::handleProgressUpdate(QString message)
-{
-    emit(progressUpdate(message)) ;
-}
-
-////////////////////////////////////////////////////////////////////
 /// \brief Face::build
 /// \param source
 /// \param f
@@ -71,29 +64,17 @@ void Face::handleProgressUpdate(QString message)
 
 //!!TODO Percent Update
 
-PM::Err Face::build(QImage source, int f, int size)
+PM::Err Face::build(MapTranslation &map, QImage source, int f, int size)
 {
     if (source.isNull()) return PM::InputNotDefined ;
 
     m_abort = false ;
 
-    MapTranslation map ;
-
     int srcx = source.width() ;
     int srcy = source.height() ;
     int dstxy = size ;
 
-    PM::Err err = PM::Ok ;
-
-    connect(&map, SIGNAL(progressUpdate(int,QString)), this, SLOT(mapStartUpdated(int,QString))) ;
-    connect(this, SIGNAL(abort()), &map, SLOT(handleAbort())) ;
-    err = map.start(f, srcx, srcy, dstxy) ;
-    disconnect(this, SIGNAL(abort()), &map, SLOT(handleAbort())) ;
-    disconnect(&map, SIGNAL(progressUpdate(int,QString)), this, SLOT(mapStartUpdated(int,QString))) ;
-
-    // Map Building = 25%
-    emit(percentUpdate(25));
-
+    PM::Err err = map.start(f, srcx, srcy, dstxy) ;
     if (err!=PM::Ok) return err ;
 
     emit(progressUpdate(QString("Building Face: ") + QString::number(f))) ;
@@ -107,20 +88,26 @@ PM::Err Face::build(QImage source, int f, int size)
     do {
 
         coord=map.next() ;
+        iteration++ ;
 
         if (coord->dstx==0) {
             QCoreApplication::processEvents();
-            emit(percentUpdate(25 + (coord->srcy*75)/srcy));
+            emit(percentUpdate((iteration*100)/(dstxy*dstxy)));
             if (m_abort) { err = PM::OperationCancelled ; }
         }
 
-        if (coord->dstx > dstxy || coord->dsty>dstxy) err = PM::InvalidMapTranslation ;
+        if (coord->dstx>dstxy || coord->dsty>dstxy) {
+            // dstx=22496, dsty=430, dstxy=512 ERR HERE !!!!!!!!!
+            err = PM::InvalidMapTranslation ;
+        }
         QRgb pix= source.pixel(coord->srcx, coord->srcy) ;
         setPixel(coord->dsty, coord->dstx, pix) ;
 
     } while (coord->face>=0 && iteration<=(dstxy*dstxy)) ;
 
-    if (coord->face>=0) err = PM::InvalidMapTranslation ;
+    if (coord->face>=0) {
+        err = PM::InvalidMapTranslation ;
+    }
 
     map.end() ;
     return err ;

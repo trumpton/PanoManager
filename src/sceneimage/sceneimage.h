@@ -25,7 +25,7 @@
 #include <QObject>
 #include "../errors/pmerrors.h"
 #include "../sceneimage/face.h"
-
+#include "maptranslation/maptranslation.h"
 
 class SceneImage : public QObject
 {
@@ -38,10 +38,11 @@ private:
     Face m_faces[6] ;
     bool m_ispreview ;
 
-    // Counter used to report % progress
+    // Counters used to report % progress
     int m_loadMax ;
     int m_loadPos ;
-    int m_buildFace ;
+    int m_buildLoadFace ;
+    int m_buildLoadSteps ;
 
     PM::Err buildFaces(bool buildpreview=false) ;
     PM::Err loadFaces(bool loadpreview, bool scaleforpreview = true) ;

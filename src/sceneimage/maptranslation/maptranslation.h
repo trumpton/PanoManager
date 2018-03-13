@@ -67,9 +67,6 @@ private:
 
     QString mapPath(int type, int srcx, int srcy, int dstxy) ;
 
-    // Build a new map, and save in the user's application cache folder
-    PM::Err buildAndSave(unsigned short srcx, unsigned short srcy, unsigned short dstxy) ;
-
     // Open the files
     PM::Err openFile(int face, unsigned short srcx, unsigned short srcy, unsigned short dstxy) ;
 
@@ -80,7 +77,13 @@ public:
     int srcy() ;
     int dstxy() ;
 
-    // Start a new map translation, building a new map if necessary
+    // Returns true if the requested map exists
+    bool exists(unsigned short srcx, unsigned short srcy, unsigned short dstxy) ;
+
+    // Build a new map, and save in the user's application cache folder
+    PM::Err build(unsigned short srcx, unsigned short srcy, unsigned short dstxy) ;
+
+    // Start a new map translation (the map must have already been built with build)
     PM::Err start(int face, unsigned short srcx, unsigned short srcy, unsigned short dstxy) ;
 
     // Get the next coordinate mapping for face f from cache files
@@ -95,6 +98,7 @@ public slots:
 
 signals:
     void progressUpdate(QString message) ;
+    void percentUpdate(int percent) ;
 
 };
 
