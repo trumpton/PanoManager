@@ -97,7 +97,6 @@ PM::Err Face::build(MapTranslation &map, QImage source, int f, int size)
         }
 
         if (coord->dstx>dstxy || coord->dsty>dstxy) {
-            // dstx=22496, dsty=430, dstxy=512 ERR HERE !!!!!!!!!
             err = PM::InvalidMapTranslation ;
         }
         QRgb pix= source.pixel(coord->srcx, coord->srcy) ;
@@ -154,6 +153,7 @@ PM::Err Face::exportTiles(int targetimagesize, int tilesize, QString outputFolde
         bool donex=false ;
         int x=0 ;
 
+        emit(percentUpdate((y*tilesize*100)/height)) ;
         QCoreApplication::processEvents();
         if (m_abort) { err = PM::OperationCancelled ; }
 
@@ -188,6 +188,8 @@ PM::Err Face::exportTiles(int targetimagesize, int tilesize, QString outputFolde
         y++ ;
 
     } while (!doney && err==PM::Ok) ;
+
+    if (err==PM::Ok) emit(percentUpdate(100)) ;
 
     return err ;
 }

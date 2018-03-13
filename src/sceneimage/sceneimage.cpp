@@ -133,21 +133,20 @@ PM::Err SceneImage::loadFaces(bool loadpreview, bool scaleforpreview)
 
     PM::Err err = PM::Ok ;
     m_ispreview = loadpreview ;
-    m_buildLoadSteps = 6 ;
 
-    for (int f=0; err==PM::Ok && f<6; f++) {
-        m_buildLoadFace=f ;
+    for (int f=0; !m_abort && err==PM::Ok && f<6; f++) {
         QString path = m_facedir + "/face00" + QString::number(f) + QString(loadpreview?"_preview.png":".png") ;
 
         emit(progressUpdate(QString("Loading Face: ") + QString::number(f))) ;
-        connect(&m_faces[f], SIGNAL(percentUpdate(int)), this, SLOT(handlePercentUpdate(int))) ;
-        connect(&m_faces[f], SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
-        connect(this, SIGNAL(abort()), &m_faces[f], SLOT(handleAbort())) ;
 
         if (m_faces[f].load(path)) {
+            int p1 = (((f*2+1)*100)/12)  ;
+            emit(percentUpdate(  (m_loadPos+p1)*100 /m_loadMax )) ;
             if (scaleforpreview) {
                 emit(progressUpdate(QString("Scaling Face: ") + QString::number(f))) ;
                 m_faces[f] = m_faces[f].scaled(512, 512) ;
+                int p2 = (((f*2+2)*100)/12)  ;
+                emit(percentUpdate(  (m_loadPos+p2)*100 /m_loadMax )) ;
             }
         } else {
             if (loadpreview) {
@@ -156,12 +155,6 @@ PM::Err SceneImage::loadFaces(bool loadpreview, bool scaleforpreview)
                 err = PM::FaceLoadError ;
             }
         }
-
-        disconnect(this, SIGNAL(abort()), &m_faces[f], SLOT(handleAbort())) ;
-        disconnect(&m_faces[f], SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
-        disconnect(&m_faces[f], SIGNAL(percentUpdate(int)), this, SLOT(handlePercentUpdate(int))) ;
-
-
     }
     return err ;
 }
@@ -299,6 +292,6 @@ void SceneImage::handleAbort()
 // Handle % processing of face function
 void SceneImage::handlePercentUpdate(int percent)
 {
-    int prog = (m_loadPos+(100*m_buildLoadFace+percent))/m_buildLoadSteps ;
+    int prog = ( ( m_loadPos +  (100*m_buildLoadFace+percent)/m_buildLoadSteps ) * 100 ) / m_loadMax ;
     emit(percentUpdate( prog )) ;
 }
