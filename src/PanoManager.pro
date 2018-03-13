@@ -38,7 +38,8 @@ SOURCES += \
         dialogs/tourproperties/tourpropertiesdialog.cpp \
         dialogs/about/aboutdialog.cpp \
         dialogs/webserver/webserver.cpp \
-        widgets/sceneview/sceneviewwidget.cpp
+        widgets/sceneview/sceneviewwidget.cpp \
+    sceneimage/maptranslation.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -48,14 +49,14 @@ HEADERS += \
         icons/icons.h \
         sceneimage/sceneimage.h \
         sceneimage/face.h \
-        sceneimage/maptranslation/maptranslation.h \
         dialogs/progress/progressdialog.h \
         dialogs/tourproperties/tourpropertiesdialog.h \
         dialogs/about/aboutdialog.h \
         dialogs/webserver/webserver.h \
         widgets/sceneview/sceneviewwidget.h \
     errors/pmerrors.h \
-    version.h
+    version.h \
+    sceneimage/maptranslation.h
 
 FORMS += \
         mainwindow.ui \

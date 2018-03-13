@@ -19,7 +19,7 @@
 //
 
 #include "face.h"
-#include "maptranslation/maptranslation.h"
+#include "maptranslation.h"
 
 #include <QImage>
 #include <QObject>

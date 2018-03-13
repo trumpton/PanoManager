@@ -25,7 +25,7 @@
 #include <QObject>
 #include "../errors/pmerrors.h"
 #include "../sceneimage/face.h"
-#include "maptranslation/maptranslation.h"
+#include "maptranslation.h"
 
 class SceneImage : public QObject
 {

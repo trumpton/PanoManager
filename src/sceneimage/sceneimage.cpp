@@ -19,7 +19,7 @@
 //
 
 #include "sceneimage.h"
-#include "maptranslation/maptranslation.h"
+#include "maptranslation.h"
 #include <math.h>
 #include <QDir>
 #include <QRgb>
