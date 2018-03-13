@@ -220,7 +220,7 @@ MapCoordinate *MapTranslation::next()
             // Down
             m_coords.srcy = m_srcy - m_coords.srcy ;
             m_coords.remy = 100 - m_coords.remy ;
-            m_coords.dstx = m_dstxy - m_x ;
+            m_coords.dstx = m_dstxy - m_x -1 ;
             break ;
         }
 
