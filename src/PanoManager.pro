@@ -33,13 +33,12 @@ SOURCES += \
         icons/icons.cpp \
         sceneimage/sceneimage.cpp \
         sceneimage/face.cpp \
-        sceneimage/maptranslation/maptranslation.cpp \
+        sceneimage/maptranslation.cpp \
         dialogs/progress/progressdialog.cpp \
         dialogs/tourproperties/tourpropertiesdialog.cpp \
         dialogs/about/aboutdialog.cpp \
         dialogs/webserver/webserver.cpp \
-        widgets/sceneview/sceneviewwidget.cpp \
-    sceneimage/maptranslation.cpp
+        widgets/sceneview/sceneviewwidget.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -47,6 +46,7 @@ HEADERS += \
         project/scene.h \
         project/node.h \
         icons/icons.h \
+        sceneimage/maptranslation.h \
         sceneimage/sceneimage.h \
         sceneimage/face.h \
         dialogs/progress/progressdialog.h \
@@ -54,16 +54,15 @@ HEADERS += \
         dialogs/about/aboutdialog.h \
         dialogs/webserver/webserver.h \
         widgets/sceneview/sceneviewwidget.h \
-    errors/pmerrors.h \
-    version.h \
-    sceneimage/maptranslation.h
+        errors/pmerrors.h \
+        version.h
 
 FORMS += \
         mainwindow.ui \
         dialogs/progress/progressdialog.ui \
         dialogs/tourproperties/tourpropertiesdialog.ui \
         dialogs/webserver/webserver.ui \
-    dialogs/about/aboutdialog.ui
+        dialogs/about/aboutdialog.ui
 
 RESOURCES += \
         widgets/sceneview/shaders.qrc \
