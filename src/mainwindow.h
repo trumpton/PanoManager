@@ -81,6 +81,14 @@ private slots:
     void on_actionE_xit_triggered();
     void on_action_About_triggered();
 
+    void on_action_Add_Scene_triggered();
+
+    void on_action_Delete_Scene_triggered();
+
+    void on_action_Add_Node_triggered();
+
+    void on_action_Delete_Node_triggered();
+
 private:
     enum QFileDialog::Option m_fdOptions ;
     ProgressDialog m_prog ;

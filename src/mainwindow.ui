@@ -20,7 +20,7 @@
    <string>Pano Manager</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="appicons.qrc">
+   <iconset resource="appicons/appicons.qrc">
     <normaloff>:/appicons/PanoManagerIcon128.png</normaloff>:/appicons/PanoManagerIcon128.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -1012,9 +1012,8 @@
     <property name="title">
      <string>&amp;Scenes</string>
     </property>
-    <addaction name="action_Add"/>
-    <addaction name="action_Edit"/>
-    <addaction name="action_Delete"/>
+    <addaction name="action_Add_Scene"/>
+    <addaction name="action_Delete_Scene"/>
     <addaction name="separator"/>
     <addaction name="action_Build_Hi_Res_Scenes"/>
     <addaction name="separator"/>
@@ -1024,8 +1023,8 @@
     <property name="title">
      <string>&amp;Nodes</string>
     </property>
-    <addaction name="action_Add_2"/>
-    <addaction name="action_Delete_2"/>
+    <addaction name="action_Add_Node"/>
+    <addaction name="action_Delete_Node"/>
    </widget>
    <widget class="QMenu" name="menu_Tour">
     <property name="title">
@@ -1077,11 +1076,6 @@
     <string>E&amp;xit</string>
    </property>
   </action>
-  <action name="action_Import_Scene">
-   <property name="text">
-    <string>&amp;Import Scene</string>
-   </property>
-  </action>
   <action name="action_Save_Project_As">
    <property name="text">
     <string>Save Project &amp;As</string>
@@ -1103,44 +1097,24 @@
     <string>Load &amp;Hi-Res Images</string>
    </property>
   </action>
-  <action name="action_Add">
+  <action name="action_Add_Scene">
    <property name="text">
     <string>&amp;Add</string>
    </property>
   </action>
-  <action name="action_Edit">
-   <property name="text">
-    <string>&amp;Edit</string>
-   </property>
-  </action>
-  <action name="action_Delete">
+  <action name="action_Delete_Scene">
    <property name="text">
     <string>&amp;Delete</string>
    </property>
   </action>
-  <action name="actiond">
-   <property name="text">
-    <string>d</string>
-   </property>
-  </action>
-  <action name="action_Add_2">
+  <action name="action_Add_Node">
    <property name="text">
     <string>&amp;Add</string>
    </property>
   </action>
-  <action name="action_Delete_2">
+  <action name="action_Delete_Node">
    <property name="text">
     <string>&amp;Delete</string>
-   </property>
-  </action>
-  <action name="action_Panellum">
-   <property name="text">
-    <string>&amp;Panellum</string>
-   </property>
-  </action>
-  <action name="action_Marzipano">
-   <property name="text">
-    <string>&amp;Marzipano</string>
    </property>
   </action>
   <action name="action_Properties">
@@ -1159,24 +1133,6 @@
    </property>
    <property name="visible">
     <bool>false</bool>
-   </property>
-  </action>
-  <action name="actionEnable_Web_Browser">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>&amp;Enable </string>
-   </property>
-  </action>
-  <action name="action_Configure_Web_Server">
-   <property name="text">
-    <string>&amp;Configure</string>
-   </property>
-  </action>
-  <action name="actionWeb_Server_Log">
-   <property name="text">
-    <string>View &amp;Log</string>
    </property>
   </action>
   <action name="action_Web_Server">
@@ -1200,7 +1156,7 @@
  </customwidgets>
  <resources>
   <include location="icons/texture.qrc"/>
-  <include location="appicons.qrc"/>
+  <include location="appicons/appicons.qrc"/>
  </resources>
  <connections/>
 </ui>

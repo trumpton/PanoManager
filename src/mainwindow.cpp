@@ -169,7 +169,6 @@ void MainWindow::refreshScenes(QString selectedScene)
             ui->scenes_listWidget->setCurrentItem(item, QItemSelectionModel::Select) ;
         }
         ui->sceneTitle_lineEdit->setText(project.scene(m_currentScene).title()) ;
-
     } else {
         // Unset the current item
         ui->scenes_listWidget->setCurrentRow(-1) ;
@@ -191,6 +190,11 @@ void MainWindow::refreshScenes(QString selectedScene)
 
     bool showSceneDetails = !m_currentScene.isEmpty() ;
     ui->scenedetails_groupBox->setEnabled(showSceneDetails) ;
+    ui->action_Add_Scene->setEnabled(true) ;
+
+    bool someScenes = ui->scenes_listWidget->selectedItems().count()>0 ;
+    ui->action_Delete_Scene->setEnabled(someScenes) ;
+    ui->deletescene_pushButton->setEnabled(someScenes) ;
 
     qDebug() << "refreshScenes(" << selectedScene << ") completed" ;
 
@@ -315,6 +319,16 @@ void MainWindow::refreshNodes(QString selectedNode)
     bool showNodes = !m_currentScene.isEmpty() ;
     ui->nodelist_groupBox->setEnabled(showNodes) ;
     ui->nodedetails_groupBox->setEnabled(showNodes) ;
+    ui->action_Add_Node->setEnabled(showNodes) ;
+    ui->nodeAdd_pushButton->setEnabled(showNodes) ;
+
+    bool someNodes = ui->node_listWidget->selectedItems().count()>0 ;
+    ui->action_Delete_Node->setEnabled(someNodes) ;
+    ui->nodeDelete_pushButton->setEnabled(someNodes) ;
+
+    bool someScenes = ui->scenes_listWidget->selectedItems().count()>0 ;
+    ui->action_Delete_Scene->setEnabled(someScenes) ;
+    ui->action_Delete_Scene->setEnabled(someScenes) ;
 
    ui->display->setSelectedNode(m_currentNode);
    ui->display->refresh();
@@ -966,6 +980,29 @@ void MainWindow::on_action_About_triggered()
 }
 
 //======================================================================================================================
+//
+// Scene and Node Menu Buttons
+//
+void MainWindow::on_action_Add_Scene_triggered()
+{
+    on_addscene_pushButton_clicked();
+}
+
+void MainWindow::on_action_Delete_Scene_triggered()
+{
+    on_deletescene_pushButton_clicked();
+}
+
+void MainWindow::on_action_Add_Node_triggered()
+{
+    on_nodeAdd_pushButton_clicked();
+}
+
+void MainWindow::on_action_Delete_Node_triggered()
+{
+    on_nodeDelete_pushButton_clicked();
+}
+
 //======================================================================================================================
 //======================================================================================================================
 //======================================================================================================================
@@ -984,5 +1021,3 @@ void MainWindow::on_actionE_xit_triggered()
 
     this->close() ;
 }
-
-
