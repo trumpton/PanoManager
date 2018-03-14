@@ -69,6 +69,6 @@ RESOURCES += \
         icons/texture.qrc \
         library/pannellum.qrc \
         library/fonts.qrc \
-    appicons.qrc
+        appicons/appicons.qrc
 
 DISTFILES +=
