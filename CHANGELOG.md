@@ -1,5 +1,15 @@
 #Change Log
 
+## Update Version 0.2
+
+New Features:
+* Command line switches to select fonts and file browsers
+
+Fixes:
+* Incorrect fonts displayed with statically linked Linux App
+* Windows 32-bit applications not rendering as running out of memory
+* Save files support relative paths
+
 ## Initial Version 0.1 (01 March 2018)
 
 Features:
