@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/appicons">
+        <file>PanoManagerIcon128.png</file>
+    </qresource>
+</RCC>
