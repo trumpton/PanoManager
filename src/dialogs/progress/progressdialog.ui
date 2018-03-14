@@ -20,7 +20,11 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Building</string>
+   <string>Processing ...</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../appicons.qrc">
+    <normaloff>:/appicons/PanoManagerIcon128.png</normaloff>:/appicons/PanoManagerIcon128.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
@@ -84,7 +88,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../appicons.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

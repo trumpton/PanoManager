@@ -68,6 +68,7 @@ RESOURCES += \
         widgets/sceneview/shaders.qrc \
         icons/texture.qrc \
         library/pannellum.qrc \
-        library/fonts.qrc
+        library/fonts.qrc \
+    appicons.qrc
 
 DISTFILES +=

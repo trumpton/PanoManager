@@ -19,6 +19,10 @@
   <property name="windowTitle">
    <string>Pano Manager</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="appicons.qrc">
+    <normaloff>:/appicons/PanoManagerIcon128.png</normaloff>:/appicons/PanoManagerIcon128.png</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <property name="accessibleName">
     <string>Pano Manager</string>
@@ -1196,6 +1200,7 @@
  </customwidgets>
  <resources>
   <include location="icons/texture.qrc"/>
+  <include location="appicons.qrc"/>
  </resources>
  <connections/>
 </ui>
