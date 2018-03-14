@@ -23,6 +23,7 @@
 
 #include <QSettings>
 #include <QFileInfo>
+#include <QDir>
 
 Project::Project() : m_invalidScene(true)
 {
@@ -73,6 +74,11 @@ bool Project::OpenProject(QString path)
 {
     clear() ;
     m_projectpath = path ;
+
+    // Get the project folder
+    QFileInfo projFileInfo(path) ;
+    QDir projDir(projFileInfo.absoluteDir()) ;
+
     QSettings project(path, QSettings::IniFormat) ;
     int numScenes = project.value("numScenes", (int)0).toInt() ;
 
@@ -113,7 +119,11 @@ bool Project::OpenProject(QString path)
             newScene.nodes().append(newNode) ;
         }
 
-        newScene.setFilename(project.value(scenePrefix + QString("imageFolder")).toString()) ;
+        // Load relative filename and convert to absolute path
+        QString imageFileName = project.value(scenePrefix + QString("imageFolder")).toString() ;
+        imageFileName = QDir::cleanPath(projDir.absoluteFilePath(imageFileName)) ;
+        newScene.setFilename(imageFileName) ;
+
         newScene.setTitle(project.value(scenePrefix + QString("sceneName")).toString()) ;
         newScene.setNorthOffset(project.value(scenePrefix + QString("northOffsetLon")).toInt()) ;
         newScene.setId(project.value(scenePrefix + QString("id")).toString()) ;
@@ -149,6 +159,11 @@ bool Project::SaveProject(QString path)
     if (!isDirty() || isEmpty()) return true ;
     if (path.isEmpty()) path = m_projectpath ;
     m_projectpath = path ;
+
+    // Get the project folder
+    QFileInfo projFileInfo(path) ;
+    QDir projDir(projFileInfo.absoluteDir()) ;
+
     QSettings project(path, QSettings::IniFormat) ;
     project.clear() ;
 
@@ -172,7 +187,12 @@ bool Project::SaveProject(QString path)
         Scene& sc = sceneAt(s) ;
 
         project.setValue(scenePrefix + "id", sc.id()) ;
-        project.setValue(scenePrefix + QString("imageFolder"), sc.filename()) ;
+
+        // Save relative image filename
+        QString imageFileName = QDir::cleanPath(sc.filename()) ;
+        imageFileName = projDir.relativeFilePath(imageFileName) ;
+        project.setValue(scenePrefix + QString("imageFolder"), imageFileName) ;
+
         project.setValue(scenePrefix + QString("sceneName"), sc.title()) ;
         project.setValue(scenePrefix + QString("northOffsetLon"), sc.northOffset()) ;
 
