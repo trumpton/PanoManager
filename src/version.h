@@ -18,6 +18,6 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define VERSION "v0.2 pre"
-#define VERSIONDATE "13/03/2018"
+#define VERSIONDATE "14/03/2018"
 
 #endif // VERSION_H
