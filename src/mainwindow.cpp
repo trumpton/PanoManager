@@ -54,7 +54,7 @@ MainWindow::MainWindow(QWidget *parent) :
     settings = new QSettings("trumpton.org.uk", "panomanager") ;
 
     // Populate Node Types Menu
-    for (int i=0; i<Icon::numTextures; i++) {
+    for (unsigned int i=0; i<Icon::numTextures; i++) {
         QMatrix rot ;
         QPixmap pm ;
         QImage img(Icon::textureFile((Icon::IconType)i));
@@ -71,6 +71,7 @@ MainWindow::MainWindow(QWidget *parent) :
     webserver.setCommand(settings->value("webservercommand","php -S localhost:8000").toString()) ;
     webserver.setServerFolder(settings->value("webserverfolder", "").toString());
 
+    // Clear out, and put app in a known fixed state
     on_action_New_Project_triggered();
 
     // Signal and Slot Connection for live update of bearing
@@ -160,17 +161,20 @@ void MainWindow::refreshScenes(QString selectedScene)
     }
 
     if (project.scene(selectedScene).isValid()) {
-        // Update current scene to match selected
+        // Update current scene to match selected, and highlight it as selected
         m_currentScene=selectedScene ;
         QListWidgetItem *item = findListWidgetItemById(ui->scenes_listWidget, m_currentScene) ;
         if (item && ui->scenes_listWidget->currentItem()!=item) {
             ui->scenes_listWidget->clearSelection() ;
             ui->scenes_listWidget->setCurrentItem(item, QItemSelectionModel::Select) ;
         }
+        ui->sceneTitle_lineEdit->setText(project.scene(m_currentScene).title()) ;
+
     } else {
         // Unset the current item
         ui->scenes_listWidget->setCurrentRow(-1) ;
         ui->scenes_listWidget->clearSelection() ;
+        ui->sceneTitle_lineEdit->setText("") ;
         m_currentScene="" ;
     }
 
@@ -184,6 +188,9 @@ void MainWindow::refreshScenes(QString selectedScene)
         ui->nodedestination_comboBox->addItem(scenetitle, sceneid);
     }
     ui->nodedestination_comboBox->setCurrentIndex(nodeDest);
+
+    bool showSceneDetails = !m_currentScene.isEmpty() ;
+    ui->scenedetails_groupBox->setEnabled(showSceneDetails) ;
 
     qDebug() << "refreshScenes(" << selectedScene << ") completed" ;
 
@@ -212,16 +219,6 @@ void MainWindow::refreshNodes(QString selectedNode)
     qDebug() << "refreshNodes(" << selectedNode << ") started" ;
 
     Scene& scene = project.scene(m_currentScene) ;
-
-    // Check and Update Selected Node
-    m_lastNodeScene = m_currentScene ;
-    m_currentNode = selectedNode ;
-    if (!scene.isValid()) m_currentNode="" ;
-    if (!scene.node(m_currentNode).isValid()) m_currentNode="" ;
-
-    ui->scenedetails_groupBox->setEnabled(!m_currentScene.isEmpty()) ;
-    ui->nodelist_groupBox->setEnabled(!m_currentScene.isEmpty()) ;
-    ui->nodedetails_groupBox->setEnabled(!m_currentNode.isEmpty()) ;
 
     // Update Existing Entries and Add New
     for (int j=0; j<scene.nodeCount(); j++) {
@@ -257,34 +254,21 @@ void MainWindow::refreshNodes(QString selectedNode)
         }
     }
 
-    // TODO: !!!!!!!
-    // Don't set m_currentNode at the start
-    // check to see if selectedNode!=m_currentNode to identify change
-    // and then select it (or not)
-    // In theory, shouldn't need to use m_lastNodeScene, as we clear
-    // the nodelist when the scene changes anyway
+    if (project.scene(m_currentScene).node(selectedNode).isValid()) {
 
-    // Populate Node Details
-    if (m_currentNode.isEmpty()) {
+        m_currentNode = selectedNode ;
 
-        // Clear Details
-        m_lastNode = m_currentNode ;
-        ui->nodetype_comboBox->setCurrentIndex(0);
-        ui->node_arrivalLon_lineEdit->setText("0") ;
-        ui->node_arrivalLat_lineEdit->setText("0") ;
-        ui->nodetitle_lineEdit->clear() ;
-        ui->nodedescription_plainTextEdit->document()->clear() ;
-        ui->nodeUrl_lineEdit->clear() ;
-        ui->nodedestination_comboBox->setCurrentIndex(-1) ;
-        ui->node_listWidget->setCurrentRow(-1) ;
-
-    } else if (m_currentNode.compare(m_lastNode)!=0) {
-
-        // Load Details from Node
-        m_lastNode = m_currentNode ;
+        // Node has changed
         Node& node = scene.node(m_currentNode) ;
 
-        // TODO: Bearing always seems to be zero
+        // Force item to be selected
+        QListWidgetItem *item = findListWidgetItemById(ui->node_listWidget, m_currentNode) ;
+        ui->node_listWidget->clearSelection() ;
+        if (item) {
+            ui->node_listWidget->setCurrentItem(item, QItemSelectionModel::Select) ;
+        }
+
+        // Extract parameters for Node
         int bearing = node.arrivalLon() ;
         int elev = node.arrivalLat() ;
         int type = node.type() ;
@@ -310,7 +294,27 @@ void MainWindow::refreshNodes(QString selectedNode)
         ui->nodetitle_lineEdit->setText(title) ;
         ui->nodedescription_plainTextEdit->document()->setPlainText(desc) ;
         ui->nodeUrl_lineEdit->setText(url) ;
+
+    } else {
+
+        // Clear Details
+        ui->nodetype_comboBox->setCurrentIndex(0);
+        ui->node_arrivalLon_lineEdit->setText("0") ;
+        ui->node_arrivalLat_lineEdit->setText("0") ;
+        ui->nodetitle_lineEdit->clear() ;
+        ui->nodedescription_plainTextEdit->document()->clear() ;
+        ui->nodeUrl_lineEdit->clear() ;
+        ui->nodedestination_comboBox->setCurrentIndex(-1) ;
+
+        // Unset the current item
+        ui->node_listWidget->setCurrentRow(-1) ;
+        ui->node_listWidget->clearSelection() ;
+        m_currentNode="" ;
     }
+
+    bool showNodes = !m_currentScene.isEmpty() ;
+    ui->nodelist_groupBox->setEnabled(showNodes) ;
+    ui->nodedetails_groupBox->setEnabled(showNodes) ;
 
    ui->display->setSelectedNode(m_currentNode);
    ui->display->refresh();
@@ -467,7 +471,6 @@ void MainWindow::changeScene(QString id)
         refreshScenes(id) ;
         ui->display->setNorthCompassLon(north);
         refreshNodes("") ;
-        ui->sceneTitle_lineEdit->setText(title) ;
 
         m_prog.hide() ;
 
@@ -480,8 +483,8 @@ void MainWindow::changeScene(QString id)
 //
 // Scene Editing
 //
-//  on_sceneTitle_lineEdit_textChanged -   TODO
-//  on_setNorth_pushButton_clicked  -   Set scene's North Bearing
+//  on_setNorth_pushButton_clicked         -   Set scene's North Bearing
+//  on_sceneTitle_lineEdit_editingFinished -   Save title, and refresh
 //
 
 
@@ -521,7 +524,7 @@ void MainWindow::on_sceneTitle_lineEdit_editingFinished()
 // Movement
 //
 // on_realBearingChanged            - Callback from display, updates when user moves the camera view
-// on_turnAround_pushButton_clicked -   Turn user view around 180 degrees
+// on_turnAround_pushButton_clicked - Turn user view around 180 degrees
 //
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -555,9 +558,9 @@ void MainWindow::on_turnAround_pushButton_clicked()
 //
 // Node Selection and Management Handlers
 //
-//  on_nodeAdd_pushButton_clicked            -   Add a new node
-//  on_node_listWidget_itemClicked           -   Change selected node
-// on_nodeDelete_pushButton_clicked          - Remove a node
+// on_nodeAdd_pushButton_clicked      - Add a new node
+// on_node_listWidget_itemClicked     - Change selected node
+// on_nodeDelete_pushButton_clicked   - Remove a node
 //
 
 
@@ -581,12 +584,6 @@ void MainWindow::on_nodeAdd_pushButton_clicked()
 //----------------------------------------------------------------------------------------------------------------------
 //
 // on_nodeDelete_pushButton_clicked
-//
-// Note that the call to refreshNodes will de-select the item.
-//      which will result in a currentItemChanged message
-//      which will result in an attempted call to refreshNodes
-//      which exits immediately because of the mutex check
-//      allowing refreshNodes to complete successfully
 //
 void MainWindow::on_nodeDelete_pushButton_clicked()
 {
@@ -630,9 +627,6 @@ void MainWindow::on_node_listWidget_itemClicked(QListWidgetItem *item)
 // on_nodetype_comboBox_currentIndexChanged         - User has change selected node
 //
 
-
-
-
 //----------------------------------------------------------------------------------------------------------------------
 //
 // on_nodeGo_pushButton_clicked
@@ -667,12 +661,12 @@ void MainWindow::on_nodedestination_comboBox_currentIndexChanged(int index)
 
 //----------------------------------------------------------------------------------------------------------------------
 //
-// on_node_arrivalLat_lineEdit_textEdited
+// on_node_arrivalLat_lineEdit_editingFinished
 //
-
-void MainWindow::on_node_arrivalLat_lineEdit_textEdited(const QString &arg1)
+void MainWindow::on_node_arrivalLat_lineEdit_editingFinished()
 {
     Node& node = project.scene(m_currentScene).node(m_currentNode) ;
+    QString arg1 = ui->node_arrivalLat_lineEdit->text() ;
     int bearing = arg1.toDouble() * 1000 ;
     if (node.arrivalLat()!=bearing) {
         node.setArrivalLat(bearing) ;
@@ -682,12 +676,12 @@ void MainWindow::on_node_arrivalLat_lineEdit_textEdited(const QString &arg1)
 
 //----------------------------------------------------------------------------------------------------------------------
 //
-// on_node_arrivalLon_lineEdit_textEdited
+// on_node_arrivalLon_lineEdit_editingFinished
 //
-
-void MainWindow::on_node_arrivalLon_lineEdit_textEdited(const QString &arg1)
+void MainWindow::on_node_arrivalLon_lineEdit_editingFinished()
 {
     Node& node = project.scene(m_currentScene).node(m_currentNode) ;
+    QString arg1 = ui->node_arrivalLon_lineEdit->text() ;
     int bearing = arg1.toDouble() * 1000 ;
     if (node.arrivalLon()!=bearing) {
         node.setArrivalLon(bearing) ;
@@ -697,9 +691,8 @@ void MainWindow::on_node_arrivalLon_lineEdit_textEdited(const QString &arg1)
 
 //----------------------------------------------------------------------------------------------------------------------
 //
-// on_nodetitle_lineEdit_textChanged
+// on_nodetitle_lineEdit_editingFinished
 //
-
 void MainWindow::on_nodetitle_lineEdit_editingFinished()
 {
     Node& node = project.scene(m_currentScene).node(m_currentNode) ;
@@ -727,12 +720,12 @@ void MainWindow::on_nodedescription_plainTextEdit_textChanged()
 
 //----------------------------------------------------------------------------------------------------------------------
 //
-// on_nodeUrl_lineEdit_textEdited
+// on_nodeUrl_lineEdit_editingFinished
 //
-
-void MainWindow::on_nodeUrl_lineEdit_textEdited(const QString &arg1)
+void MainWindow::on_nodeUrl_lineEdit_editingFinished()
 {
     Node& node = project.scene(m_currentScene).node(m_currentNode) ;
+    QString arg1 = ui->nodeUrl_lineEdit->text() ;
     if (node.url().compare(arg1)!=0) {
         node.setUrl(arg1) ;
         refreshNodes(m_currentNode) ;
@@ -758,9 +751,6 @@ void MainWindow::on_nodeSet_pushButton_clicked()
 //
 // on_nodetype_comboBox_currentIndexChanged
 //
-
-// TODO: appear to be setting the type to 'index' here, but by the time the refreshNodes
-// is reached, the type is mysteriously 0 again
 void MainWindow::on_nodetype_comboBox_currentIndexChanged(int index)
 {
     Node& node = project.scene(m_currentScene).node(m_currentNode) ;
@@ -790,6 +780,9 @@ void MainWindow::on_action_Open_Project_triggered()
 {
     qDebug() << "Open_Project()" ;
 
+    // Clear out, and put app in a known fixed state
+    on_action_New_Project_triggered();
+
     QString lastdir = settings->value("lastdir", "").toString() ;
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open Project"), lastdir, tr("Pano Manager Project Files (*pmp)"), Q_NULLPTR, m_fdOptions);
     if (!fileName.isEmpty()) {
@@ -802,7 +795,6 @@ void MainWindow::on_action_Open_Project_triggered()
         ui->scenes_groupBox->setEnabled(true) ;
         ui->display->setCamera(0, 0) ;
         ui->display->setNorthCompassLon(0);
-        ui->sceneTitle_lineEdit->setText("") ;
         refreshScenes("") ;
         refreshNodes("") ;
     }
@@ -864,18 +856,11 @@ void MainWindow::on_action_New_Project_triggered()
     ui->display->clearScene() ;
     project.clear() ;
 
-    ui->scenes_groupBox->setEnabled(true) ;
-    ui->scenedetails_groupBox->setEnabled(false) ;
-    ui->nodedetails_groupBox->setEnabled(false) ;
-    ui->nodetype_comboBox->setCurrentIndex(0) ;
-    ui->nodedescription_plainTextEdit->document()->clear() ;
-    ui->nodedestination_comboBox->setCurrentIndex(0) ;
-    ui->node_arrivalLat_lineEdit->setText(0) ;
-    ui->node_arrivalLon_lineEdit->setText(0) ;
+    ui->addscene_pushButton->setFocus() ;
+
     settings->setValue("lastfilename", "") ;
     ui->display->setCamera(0, 0) ;
     ui->display->setNorthCompassLon(0);
-    ui->sceneTitle_lineEdit->setText("") ;
     refreshScenes("") ;
     refreshNodes("") ;
 

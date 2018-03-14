@@ -69,14 +69,14 @@ private slots:
     void on_deletescene_pushButton_clicked();
     void on_node_listWidget_itemClicked(QListWidgetItem *item);
     void on_scenes_listWidget_itemClicked(QListWidgetItem *item);
-    void on_nodeGo_pushButton_clicked();
-    void on_node_arrivalLat_lineEdit_textEdited(const QString &arg1);
-    void on_node_arrivalLon_lineEdit_textEdited(const QString &arg1);
+    void on_nodeGo_pushButton_clicked();    
+    void on_node_arrivalLat_lineEdit_editingFinished();
+    void on_node_arrivalLon_lineEdit_editingFinished();
     void on_sceneTitle_lineEdit_editingFinished();
     void on_action_ExportPanellum_triggered();
     void on_action_ExportMarzipano_triggered();
     void on_action_Properties_triggered();
-    void on_nodeUrl_lineEdit_textEdited(const QString &arg1);
+    void on_nodeUrl_lineEdit_editingFinished();
     void on_action_Web_Server_triggered();
     void on_actionE_xit_triggered();
     void on_action_About_triggered();
@@ -91,7 +91,7 @@ private:
     QSettings *settings;
     Ui::MainWindow *ui;
     QString m_currentScene ;
-    QString m_currentNode, m_lastNode, m_lastNodeScene ;
+    QString m_currentNode ;
     int m_buildHiresPos ;
 
     void changeScene(QString id) ;
