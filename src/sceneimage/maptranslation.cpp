@@ -217,10 +217,10 @@ MapCoordinate *MapTranslation::next()
             // Up is the default, no adjustments required
             break ;
         case 5:
-            // Down
-            m_coords.srcy = m_srcy - m_coords.srcy ;
+            // Down (get image from bottom, and flip left/right)
+            m_coords.srcy = m_srcy - m_coords.srcy - 1 ;
             m_coords.remy = 100 - m_coords.remy ;
-            m_coords.dstx = m_dstxy - m_x -1 ;
+            m_coords.dstx = m_dstxy - m_coords.dstx - 1 ;
             break ;
         }
 
