@@ -28,6 +28,7 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QMessageBox>
+#include <QDebug>
 
 Face::Face() : QObject(0), QImage()
 {
@@ -88,19 +89,33 @@ PM::Err Face::build(MapTranslation &map, QImage source, int f, int size)
     do {
 
         coord=map.next() ;
-        iteration++ ;
 
-        if (coord->dstx==0) {
-            QCoreApplication::processEvents();
-            emit(percentUpdate((iteration*100)/(dstxy*dstxy)));
-            if (m_abort) { err = PM::OperationCancelled ; }
-        }
+        if (coord->face>=0) {
+            iteration++ ;
 
-        if (coord->dstx>dstxy || coord->dsty>dstxy) {
-            err = PM::InvalidMapTranslation ;
+            if (coord->dstx==0) {
+                QCoreApplication::processEvents();
+                emit(percentUpdate((iteration*100)/(dstxy*dstxy)));
+                if (m_abort) { err = PM::OperationCancelled ; }
+            }
+
+            if (coord->dstx>dstxy || coord->dsty>dstxy) {
+                err = PM::InvalidMapTranslation ;
+            }
+            QRgb pix= source.pixel(coord->srcx, coord->srcy) ;
+
+            // Diagnostic - Review Coordinate Translation
+            if ((coord->dstx<=1 && coord->dsty<=1) ||
+                (coord->dstx>=dstxy-2 && coord->dsty<=1) ||
+                (coord->dstx<1 && coord->dsty>=dstxy-2) ||
+                (coord->dstx>=dstxy-2 && coord->dsty>=dstxy-2)) {
+                qDebug() << "Building Pixel Face: " << f << ", Source (" << coord->srcx << ", " <<
+                       coord->srcy << ") = RGBA: " << (unsigned long int)pix << " => Dest (" <<
+                       coord->dstx << ", " << coord->dsty << ")" ;
+            }
+
+            setPixel(coord->dsty, coord->dstx, pix) ;
         }
-        QRgb pix= source.pixel(coord->srcx, coord->srcy) ;
-        setPixel(coord->dsty, coord->dstx, pix) ;
 
     } while (coord->face>=0 && iteration<=(dstxy*dstxy)) ;
 
