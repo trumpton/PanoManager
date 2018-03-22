@@ -183,8 +183,8 @@ void MainWindow::on_action_ExportPanellum_triggered()
     if (err==PM::Ok) {
         // Write the Panellum Supporting Files
         m_prog.setText1("Saving Panellum Files");
-        exportPanellumFiles(dir, project.title());
-        m_prog.addValue(100) ;
+        if (!copyResourceFolder(project.title(), "pannellum", dir + QString("/pannellum"), project.overwriteLibrary()))
+            err=PM::UnableToTransferResourceFiles ;
     }
 
     m_prog.hide() ;
@@ -197,42 +197,59 @@ void MainWindow::on_action_ExportPanellum_triggered()
 
 //----------------------------------------------------------------------------------------------------------------------
 //
-// exportPanellumFiles - Produce the supporting html and script files
+// copyResourceFolder
 //
-void MainWindow::exportPanellumFiles(QString folder, QString title)
+
+bool MainWindow::copyResourceFolder(QString title, QString folder, QString dest, bool forceOverwrite)
 {
-    QFile htmlin(":/pannellum/tour.html") ;
-    htmlin.open(QIODevice::ReadOnly) ;
-    QString htmldata(htmlin.readAll()) ;
-    htmlin.close() ;
-
-    QFile htmlout(folder + QString("tour.html")) ;
-    htmlout.open(QIODevice::WriteOnly) ;
-    htmlout.write(htmldata.replace("$TITLE$",title).toLatin1()) ;
-    htmlout.close() ;
-
-    copyResourceFolder(":/PannellumFles", folder + QString("/pannellum"), project.overwriteLibrary()) ;
-
-}
-
-void MainWindow::copyResourceFolder(QString foldersrc, QString dest, bool forceOverwrite)
-{
+    bool success = true ;
     QDir d ;
     d.mkdir(dest) ;
-    copyFile(":/pannellum/pannellum.js", dest + QString("/pannellum.js"), forceOverwrite) ;
-    copyFile(":/pannellum/pannellum.css", dest + QString("/pannellum.css"), forceOverwrite) ;
-    copyFile(":/pannellum/changelog.md", dest + QString("/changelog.md"), forceOverwrite) ;
-    copyFile(":/pannellum/COPYING", dest + QString("/COPYING"), forceOverwrite) ;
-    copyFile(":/pannellum/pannellum.htm", dest + QString("/pannellum.htm"), forceOverwrite) ;
-    copyFile(":/pannellum/readme.md", dest + QString("/readme.md"), forceOverwrite) ;
-    copyFile(":/pannellum/VERSION", dest + QString("/VERSION"), forceOverwrite) ;
+
+    QFileInfo exe(QCoreApplication::applicationFilePath()) ;
+    QString libFolder = exe.absolutePath() + QString("/../lib/PanoManager/") + folder ;
+
+    QFile config(libFolder + "/files.lst") ;
+    config.open(QIODevice::ReadOnly) ;
+    QString fileData(config.readAll()) ;
+    config.close() ;
+    QStringList files = fileData.replace("\r","\n").replace("\n\n","\n").split("\n") ;
+
+    if (files.isEmpty()) success = false ;
+
+    foreach (QString file, files) {
+
+        if (file.isEmpty()) {
+            // Skip the empty entries
+
+        } else if (file.compare("tour.html")==0) {
+            // tour.html is a special case, where $TITLE$ is parsed
+            QFile htmlin(libFolder + QString("/") + file) ;
+            htmlin.open(QIODevice::ReadOnly) ;
+            QString htmldata(htmlin.readAll()) ;
+            htmlin.close() ;
+            QFile htmlout(dest + QString("/../") + file) ;
+            htmlout.open(QIODevice::WriteOnly) ;
+            success &= (htmlout.write(htmldata.replace("$TITLE$",title).toLatin1())>0) ;
+            htmlout.close() ;
+
+        } else {
+            // Other files are simply copied
+            success &= copyFile(libFolder + QString("/") + file, dest + QString("/") + file, forceOverwrite) ;
+
+        }
+    }
+
+    return success ;
 }
 
-void MainWindow::copyFile(QString source, QString dest, bool forceOverwrite)
+bool MainWindow::copyFile(QString source, QString dest, bool forceOverwrite)
 {
     if (!QFile::exists(dest) || forceOverwrite) {
         QFile::remove(dest) ;
-        QFile::copy(source, dest) ;
+        return QFile::copy(source, dest) ;
+    } else {
+        return true ;
     }
 }
 

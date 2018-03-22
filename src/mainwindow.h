@@ -111,8 +111,8 @@ private:
     PM::Err DoBuild(QString file, SceneImage *scene, int seq, int of, bool loadpreview, bool buildpreview, bool scaleforpreview, bool buildonly) ;
     void exportPanellumFiles(QString folder, QString title);
     void exportMarzipanoFiles(QString folder, QString title);
-    void copyResourceFolder(QString foldersrc, QString dest, bool forceOverwrite) ;
-    void copyFile(QString source, QString dest, bool forceOverwrite) ;
+    bool copyResourceFolder(QString title, QString folder, QString dest, bool forceOverwrite) ;
+    bool copyFile(QString source, QString dest, bool forceOverwrite) ;
 
 public slots:
     void handleProgressUpdate(QString message) ;

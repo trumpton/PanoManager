@@ -33,6 +33,7 @@ static const char *_pmerrors_errstr[13] = {
     "Unable to Read Equirectangular Image",
     "Unable to load Full-Size Face",
     "Unable to load Preview Face",
+    "Unable to transfer resource files.  Check they are available in the lib folder",
     "Operation Cancelled"
 } ;
 
@@ -63,6 +64,9 @@ public:
         EquirectReadError,
         FaceLoadError,
         PreviewLoadError,
+
+        // Transfer Pannellum / Marzipano Files
+        UnableToTransferResourceFiles,
 
         // Abort
         OperationCancelled
