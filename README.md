@@ -15,6 +15,14 @@ Tours can currently be created for 'Pannellum' and 'Marzipano', and a snapshot o
 
 Once exported, Pano Manager can launch a third-party web server (e.g. using php) so that the output can be viewed on a local disk, but using a web browser.
 
+# Building
+
+This program is written from Qt version 5.9.0 or above.
+Open the .pro file in QtCreator and build.  If the build
+folder is set to the same level as the 'lib' folder, the
+debugger / application will be able to find the supporting
+library files.
+
 ## Use
 
 panomanager [ -h ] [ -f|F ] [ -n|N ]
