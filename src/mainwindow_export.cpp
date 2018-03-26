@@ -47,12 +47,175 @@
 
 //----------------------------------------------------------------------------------------------------------------------
 //
-// on_action_ExportMarzipano_triggered
+// on_action_Export_Marzipano_triggered
 //
 
 void MainWindow::on_action_ExportMarzipano_triggered()
 {
-    // Not currently supported
+    static const char *masks[] = { "f%y_%x.jpg", "r%y_%x.jpg", "b%y_%x.jpg", "l%y_%x.jpg", "u%y_%x.jpg", "d%y_%x.jpg" } ;
+    int tileresolution = 256 ;
+
+    QFileInfo exe(QCoreApplication::applicationFilePath()) ;
+    QString libFolder = exe.absolutePath() + QString("/../lib/PanoManager/marzipano") ;
+
+    PM::Err err = PM::Ok ;
+    QString lastoutputfolder = settings->value("lastoutputfolder", "").toString() ;
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Select Marzipano Output Folder"),
+                                                 lastoutputfolder,
+                                                 QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks | m_fdOptions);
+
+    if (!checkProject(dir)) {
+        return ;
+    }
+
+    m_prog.setTitle("Exporing Marzioano") ;
+    m_prog.show() ;
+    m_prog.setMaximum(200+project.sceneCount()*100);
+    m_prog.setValue(0) ;
+
+    lastoutputfolder = dir ;
+    settings->setValue("lastoutputfolder", lastoutputfolder) ;
+    dir = dir + "/" ;
+
+    QJsonObject json ;
+    QString marzlist = "" ;
+
+    // Title & Initial scene
+    json.insert("name", project.title()) ;
+    json.insert("initialscene", project.scene(project.startingSceneId()).titleId());
+
+    // Default Section
+    QJsonObject jo_settings ;
+    jo_settings.insert("mouseViewMode", "drag") ;
+    jo_settings.insert("autorotateEnabled", false) ;
+    jo_settings.insert("fullscreenButton", true) ;
+    jo_settings.insert("viewControlButtons", true) ;
+    json.insert("settings", jo_settings) ;
+
+    QJsonArray ja_scenes ;
+
+    for (int i=0; err==PM::Ok && i<project.sceneCount(); i++) {
+
+        Scene& scene = project.sceneAt(i) ;
+        m_prog.setText1( QString("Exporting ") + scene.title()) ;
+        int levels, cuberesolution ;
+        err = exportFaces(scene, tileresolution, masks, dir + scene.titleId(), &levels, &cuberesolution) ;
+
+        // List for the html file
+        marzlist = marzlist + QString("<a href='#' class='scene' data-id='") +
+                scene.titleId() +
+                QString("'><li class='text'>") +
+                scene.title() +
+                QString("</li></a>\n") ;
+
+        QJsonObject jo_scene ;
+        jo_scene.insert("id", scene.titleId()) ;
+        jo_scene.insert("name", scene.title()) ;
+        jo_scene.insert("faceSize", cuberesolution) ;
+
+        QJsonArray ja_levels ;
+        for (int l=0; l<levels; l++) {
+            QJsonObject jo_level ;
+            jo_level.insert("tileSize", tileresolution) ;
+            jo_level.insert("size", tileresolution * pow(2,l)) ;
+            if (l==0) jo_level.insert("fallbackOnly", true) ;
+            ja_levels.append(jo_level) ;
+        }
+        jo_scene.insert("levels", ja_levels) ;
+
+        // initial view when scene opened without link
+        QJsonObject jo_initialView ;
+        jo_initialView.insert("yaw", 0) ;
+        jo_initialView.insert("pitch", 0) ;
+        jo_initialView.insert("fov", 1.2) ;
+        jo_scene.insert("initialViewParameters", jo_initialView) ;
+
+        QJsonArray ja_links ;
+        QJsonArray ja_info ;
+
+        for (int h=0; h<scene.nodeCount(); h++) {
+
+            Node node = scene.nodeAt(h) ;
+
+            QJsonObject jo_node ;
+            jo_node.insert("yaw", (node.lon() * 3.141592654*2)/360000) ;
+            jo_node.insert("pitch", (node.lat() * 3.141592654)/180000) ;
+            jo_node.insert("icon", Icon::name(node.type())) ;
+
+            if (node.isInfo()) {
+
+                ja_info.append(jo_node) ;
+
+            } else if (node.isLink()) {
+
+                Scene dest = project.scene(node.destId()) ;
+
+                jo_node.insert("target", dest.titleId()) ;
+
+                // Initial view when link followed
+                QJsonObject jo_destView ;
+                jo_destView.insert("yaw", (node.arrivalLon() * 3.141592654*2)/360000) ;
+                jo_destView.insert("pitch", (node.arrivalLat() * 3.141592654)/180000) ;
+                jo_destView.insert("fov", 1.2) ;
+                jo_node.insert("initialViewParameters", jo_destView) ;
+
+                QJsonObject jo_options ;
+                jo_options.insert("transitionDuration", 2000) ;
+                jo_node.insert("options", jo_options) ;
+
+                ja_links.append(jo_node) ;
+            }
+
+        }
+
+        jo_scene.insert("linkHotspots", ja_links) ;
+        jo_scene.insert("infoHotspots", ja_info) ;
+
+        ja_scenes.append(jo_scene) ;
+
+    }
+    json.insert("scenes", ja_scenes) ;
+
+    if (err==PM::Ok) {
+        // Write the configuration file
+        m_prog.setText1("Saving Tour Configuration") ;
+        QJsonDocument doc ;
+        doc.setObject(json);
+        QFile configoutput(dir + "mtour.js") ;
+        configoutput.open(QIODevice::WriteOnly | QIODevice::Text) ;
+        configoutput.write(QString("var APP_DATA = ").toLatin1()) ;
+        configoutput.write(doc.toJson()) ;
+        configoutput.close() ;
+        m_prog.addValue(100) ;
+    }
+
+    if (err==PM::Ok) {
+        // Write the Marzipano Supporting Files
+        m_prog.setText1("Saving Marzipano Files");
+        if (!copyResourceFolder(libFolder, dir, project.overwriteLibrary()))
+            err=PM::UnableToTransferResourceFiles ;
+    }
+
+    if (err==PM::Ok) {
+        // mtour.html is a special case file, where $TITLE$ and $MPSCENESLIST$ are parsed
+        QFile htmlin(libFolder + QString("/mtour.html")) ;
+        htmlin.open(QIODevice::ReadOnly) ;
+        QString htmldata(htmlin.readAll()) ;
+        htmlin.close() ;
+        QFile htmlout(dir + QString("/mtour.html")) ;
+        htmlout.open(QIODevice::WriteOnly) ;
+        if (!htmlout.write(htmldata.replace("$MPSCENESLIST$", marzlist).replace("$TITLE$",project.title()).toLatin1())>0) {
+            err=PM::UnableToTransferResourceFiles ;
+        }
+        htmlout.close() ;
+    }
+
+    m_prog.hide() ;
+
+    if (err!=PM::Ok) {
+        QMessageBox::critical(nullptr, QString("Error Exporting Tour: "), PM::errString(err)) ;
+    }
+
 }
 
 
@@ -65,6 +228,9 @@ void MainWindow::on_action_ExportPanellum_triggered()
 {
     static const char *masks[] = { "f%y_%x.jpg", "r%y_%x.jpg", "b%y_%x.jpg", "l%y_%x.jpg", "u%y_%x.jpg", "d%y_%x.jpg" } ;
     int tileresolution = 256 ;
+
+    QFileInfo exe(QCoreApplication::applicationFilePath()) ;
+    QString libFolder = exe.absolutePath() + QString("/../lib/PanoManager/pannellum") ;
 
     PM::Err err = PM::Ok ;
     QString lastoutputfolder = settings->value("lastoutputfolder", "").toString() ;
@@ -172,7 +338,7 @@ void MainWindow::on_action_ExportPanellum_triggered()
         m_prog.setText1("Saving Tour Configuration") ;
         QJsonDocument doc ;
         doc.setObject(json);
-        QFile configoutput(dir + "tour.js") ;
+        QFile configoutput(dir + "ptour.js") ;
         configoutput.open(QIODevice::WriteOnly | QIODevice::Text) ;
         configoutput.write(QString("var tourdata = ").toLatin1()) ;
         configoutput.write(doc.toJson()) ;
@@ -183,9 +349,24 @@ void MainWindow::on_action_ExportPanellum_triggered()
     if (err==PM::Ok) {
         // Write the Panellum Supporting Files
         m_prog.setText1("Saving Panellum Files");
-        if (!copyResourceFolder(project.title(), "pannellum", dir + QString("/pannellum"), project.overwriteLibrary()))
+        if (!copyResourceFolder(libFolder, dir, project.overwriteLibrary()))
             err=PM::UnableToTransferResourceFiles ;
     }
+
+    if (err==PM::Ok) {
+        // ptour.html is a special case file, where $TITLE$ is parsed
+        QFile htmlin(libFolder + QString("/ptour.html")) ;
+        htmlin.open(QIODevice::ReadOnly) ;
+        QString htmldata(htmlin.readAll()) ;
+        htmlin.close() ;
+        QFile htmlout(dir + QString("/ptour.html")) ;
+        htmlout.open(QIODevice::WriteOnly) ;
+        if (!(htmlout.write(htmldata.replace("$TITLE$",project.title()).toLatin1())>0)) {
+            err=PM::UnableToTransferResourceFiles ;
+        }
+        htmlout.close() ;
+    }
+
 
     m_prog.hide() ;
 
@@ -200,16 +381,13 @@ void MainWindow::on_action_ExportPanellum_triggered()
 // copyResourceFolder
 //
 
-bool MainWindow::copyResourceFolder(QString title, QString folder, QString dest, bool forceOverwrite)
+bool MainWindow::copyResourceFolder(QString source, QString dest, bool forceOverwrite)
 {
     bool success = true ;
     QDir d ;
     d.mkdir(dest) ;
 
-    QFileInfo exe(QCoreApplication::applicationFilePath()) ;
-    QString libFolder = exe.absolutePath() + QString("/../lib/PanoManager/") + folder ;
-
-    QFile config(libFolder + "/files.lst") ;
+    QFile config(source + "/files.lst") ;
     config.open(QIODevice::ReadOnly) ;
     QString fileData(config.readAll()) ;
     config.close() ;
@@ -219,24 +397,8 @@ bool MainWindow::copyResourceFolder(QString title, QString folder, QString dest,
 
     foreach (QString file, files) {
 
-        if (file.isEmpty()) {
-            // Skip the empty entries
-
-        } else if (file.compare("tour.html")==0) {
-            // tour.html is a special case, where $TITLE$ is parsed
-            QFile htmlin(libFolder + QString("/") + file) ;
-            htmlin.open(QIODevice::ReadOnly) ;
-            QString htmldata(htmlin.readAll()) ;
-            htmlin.close() ;
-            QFile htmlout(dest + QString("/../") + file) ;
-            htmlout.open(QIODevice::WriteOnly) ;
-            success &= (htmlout.write(htmldata.replace("$TITLE$",title).toLatin1())>0) ;
-            htmlout.close() ;
-
-        } else {
-            // Other files are simply copied
-            success &= copyFile(libFolder + QString("/") + file, dest + QString("/") + file, forceOverwrite) ;
-
+        if (!file.isEmpty()) {
+            success &= copyFile(source + QString("/") + file, dest + QString("/") + file, forceOverwrite) ;
         }
     }
 
@@ -247,6 +409,10 @@ bool MainWindow::copyFile(QString source, QString dest, bool forceOverwrite)
 {
     if (!QFile::exists(dest) || forceOverwrite) {
         QFile::remove(dest) ;
+        QFileInfo fi(dest) ;
+        QString folder = fi.absolutePath() ;
+        QDir dir ;
+        dir.mkpath(folder) ;
         return QFile::copy(source, dest) ;
     } else {
         return true ;

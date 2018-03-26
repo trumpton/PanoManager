@@ -1032,8 +1032,8 @@
     </property>
     <addaction name="action_Properties"/>
     <addaction name="separator"/>
-    <addaction name="action_ExportPanellum"/>
     <addaction name="action_ExportMarzipano"/>
+    <addaction name="action_ExportPanellum"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
@@ -1127,14 +1127,6 @@
     <string>Export &amp;Panellum</string>
    </property>
   </action>
-  <action name="action_ExportMarzipano">
-   <property name="text">
-    <string>Export &amp;Marzipano</string>
-   </property>
-   <property name="visible">
-    <bool>false</bool>
-   </property>
-  </action>
   <action name="action_Web_Server">
    <property name="text">
     <string>&amp;Web Server</string>
@@ -1143,6 +1135,11 @@
   <action name="action_About">
    <property name="text">
     <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="action_ExportMarzipano">
+   <property name="text">
+    <string>Export &amp;Marzipano</string>
    </property>
   </action>
  </widget>
@@ -1155,8 +1152,8 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="icons/texture.qrc"/>
   <include location="appicons/appicons.qrc"/>
+  <include location="icons/texture.qrc"/>
  </resources>
  <connections/>
 </ui>

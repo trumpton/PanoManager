@@ -80,14 +80,11 @@ private slots:
     void on_action_Web_Server_triggered();
     void on_actionE_xit_triggered();
     void on_action_About_triggered();
-
     void on_action_Add_Scene_triggered();
-
     void on_action_Delete_Scene_triggered();
-
     void on_action_Add_Node_triggered();
-
     void on_action_Delete_Node_triggered();
+
 
 private:
     enum QFileDialog::Option m_fdOptions ;
@@ -111,7 +108,7 @@ private:
     PM::Err DoBuild(QString file, SceneImage *scene, int seq, int of, bool loadpreview, bool buildpreview, bool scaleforpreview, bool buildonly) ;
     void exportPanellumFiles(QString folder, QString title);
     void exportMarzipanoFiles(QString folder, QString title);
-    bool copyResourceFolder(QString title, QString folder, QString dest, bool forceOverwrite) ;
+    bool copyResourceFolder(QString source, QString dest, bool forceOverwrite) ;
     bool copyFile(QString source, QString dest, bool forceOverwrite) ;
 
 public slots:

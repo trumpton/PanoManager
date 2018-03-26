@@ -58,7 +58,6 @@ MainWindow::MainWindow(QWidget *parent) :
         QMatrix rot ;
         QPixmap pm ;
         QImage img(Icon::textureFile((Icon::IconType)i));
-        rot.rotate(Icon::textureOrientation((Icon::IconType)i)) ;
         QIcon icon(pm.fromImage(img.transformed(rot))) ;
         ui->nodetype_comboBox->addItem(icon, QString(""), (int)i) ;
     }
@@ -1021,3 +1020,4 @@ void MainWindow::on_actionE_xit_triggered()
 
     this->close() ;
 }
+
