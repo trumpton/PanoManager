@@ -324,19 +324,17 @@ void SceneViewWidget::loadIcons()
     // Load Selected Highlight
 
     if (m_selected) delete m_selected ;
-    m_selected = new QOpenGLTexture(QImage(":/texture/selected.png").mirrored()) ;
+    m_selected = new QOpenGLTexture(QImage(":/texture/selected.png").scaled(200,200).mirrored()) ;
     m_selected->setMinificationFilter(QOpenGLTexture::Nearest) ;
     m_selected->setMagnificationFilter(QOpenGLTexture::Linear) ;
     m_selected->setWrapMode(QOpenGLTexture::Repeat) ;
 
     // Load the different textures that can be drawn on the square and presented as icons
     for (int i=0; i<Icon::numTextures; i++) {
-        int orientation = Icon::textureOrientation((Icon::IconType)i) ;
         QString file = Icon::textureFile((Icon::IconType)i) ;
         if (m_icon[i]) delete m_icon[i] ;
         QMatrix matrix ;
-        matrix = matrix.rotate(orientation) ;
-        m_icon[i] = new QOpenGLTexture(QImage(file).mirrored().transformed(matrix)) ;
+        m_icon[i] = new QOpenGLTexture(QImage(file).scaled(200,200).mirrored().transformed(matrix)) ;
         m_icon[i]->setMinificationFilter(QOpenGLTexture::Nearest) ;
         m_icon[i]->setMagnificationFilter(QOpenGLTexture::Linear) ;
         m_icon[i]->setWrapMode(QOpenGLTexture::Repeat) ;
