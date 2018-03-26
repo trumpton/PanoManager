@@ -72,8 +72,8 @@ public:
     static const char *name(IconType num) ;
 
     // Rotatable Versions of the files
-    const char *rotatableTextureFile(IconType num) ;
-    const char *uprightIconName(IconType num) ;
+    static const char *rotatableTextureFile(IconType num) ;
+    static const char *uprightIconName(IconType num) ;
     static int textureOrientation(IconType num) ;
 
 };
