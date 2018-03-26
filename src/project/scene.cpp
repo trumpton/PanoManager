@@ -81,7 +81,8 @@ QString Scene::id()
 
 QString Scene::titleId()
 {
-    return m_title.replace(" ","").replace("\t", "") ;
+    // TODO: use regexp to replace all non a-z characters with ""
+    return m_title.replace(" ","").replace("\t", "").replace("\\","").replace("/","").replace(":","") ;
 }
 
 bool Scene::isEmpty()
