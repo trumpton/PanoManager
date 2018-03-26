@@ -153,11 +153,6 @@ PM::Err Face::exportTiles(int targetimagesize, int tilesize, QString outputFolde
 
     QImage img = scaled(width, height, Qt::IgnoreAspectRatio, Qt::SmoothTransformation) ;
 
-    // Create Output Folder
-    QDir dir ;
-    if (!dir.mkpath(outputFolder)) return PM::OutputWriteError ;
-
-
     PM::Err err = PM::Ok ;
 
     int y=0 ;
@@ -192,6 +187,11 @@ PM::Err Face::exportTiles(int targetimagesize, int tilesize, QString outputFolde
             // Extract the image from the requested face
             QImage dest(sizex, sizey, QImage::Format_ARGB32) ;
             dest = img.copy(x*tilesize, y*tilesize, sizex, sizey) ;
+
+            // Create the output file hierarchy
+            QFileInfo fi(outputfile) ;
+            QDir dir ;
+            if (!dir.exists(fi.absolutePath()) && !dir.mkpath(fi.absolutePath())) return PM::OutputWriteError ;
 
             // And save it
             if (!dest.save(outputfile)) err = PM::OutputWriteError ;
