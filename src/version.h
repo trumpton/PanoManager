@@ -17,7 +17,7 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#define VERSION "v0.2 pre"
-#define VERSIONDATE "14/03/2018"
+#define VERSION "v0.2"
+#define VERSIONDATE "26/03/2018"
 
 #endif // VERSION_H
