@@ -4,6 +4,7 @@
 
 New Features:
 * Command line switches to select fonts and file browsers
+* Rudimentary support for Marzipano
 
 Fixes:
 * Incorrect fonts displayed with statically linked Linux App
