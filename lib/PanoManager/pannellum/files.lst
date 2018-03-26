@@ -1,9 +1,7 @@
-tour.html
-changelog.md
-COPYING
-files.lst
-pannellum.css
-pannellum.htm
-pannellum.js
-readme.md
-VERSION
+pannellum/changelog.md
+pannellum/COPYING
+pannellum/pannellum.css
+pannellum/pannellum.htm
+pannellum/pannellum.js
+pannellum/readme.md
+pannellum/VERSION
