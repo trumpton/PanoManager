@@ -22,70 +22,52 @@
 
 typedef struct {
     Icon::Group group ;
-    int textureIndex ;
-    int textureOrientation ;
+    Icon::IconType type ;
+    const char * icontexture ;
+    const char * iconname ;
 } icontype ;
 
-
 const char * iconMenuTextures[] = {
-        ":/texture/menu-info.png",  // Icon::Info
-        ":/texture/menu-exit.png",  // Icon::Exit
-        ":/texture/menu-link.png",  // Icon::Link
-        ":/texture/menu-media.png", // Icon::Media
-        ":/texture/menu-music.png"  // Icon::Music
-} ;
-
-const char * iconTextures[12] = {
-        ":/texture/info-white.png",  // 0
-        ":/texture/door-white.png",  // 1
-        ":/texture/link0-white.png", // 2
-        ":/texture/link45-white.png",// 3
-        ":/texture/media-white.png", // 4
-        ":/texture/music-white.png", // 5
-        ":/texture/info-black.png",  // 6
-        ":/texture/door-black.png",  // 7
-        ":/texture/link0-black.png", // 8
-        ":/texture/link45-black.png",// 9
-        ":/texture/media-black.png", // 10
-        ":/texture/music-black.png"  // 11
+        ":/texture/menu-start.png", // Icon::GStart
+        ":/texture/menu-info.png",  // Icon::GInfo
+        ":/texture/menu-exit.png",  // Icon::GExit
+        ":/texture/menu-link.png",  // Icon::GLink
+        ":/texture/menu-media.png", // Icon::GMedia
+        ":/texture/menu-music.png"  // Icon::GMusic
 } ;
 
 static constexpr icontype iconList[] = {
-        { Icon::Info,  0, 0 },  // Icon::WInfo
-        { Icon::Exit,  1, 0 },  // Icon::WExit
-        { Icon::Link, 2, 0 },   // Icon::WLink000
-        { Icon::Link, 3, 0 },   // Icon::WLink045
-        { Icon::Link, 2, 90 },  // Icon::WLink090
-        { Icon::Link, 3, 90 },  // Icon::WLink135
-        { Icon::Link, 2, 180 }, // Icon::WLink180
-        { Icon::Link, 3, 180 }, // Icon::WLink225
-        { Icon::Link, 2, 270 }, // Icon::WLink270
-        { Icon::Link, 3, 270 }, // Icon::WLink315
-        { Icon::Media,  4, 0 }, // Icon::WMedia
-        { Icon::Music,  5, 0 }, // Icon::WMusic
-        { Icon::Info,  6, 0 },  // Icon::BInfo
-        { Icon::Exit,  7, 0 },  // Icon::Exit
-        { Icon::Link, 8, 0 },   // Icon::BLink000
-        { Icon::Link, 9, 0 },   // Icon::BLink045
-        { Icon::Link, 8, 90 },  // Icon::BLink090
-        { Icon::Link, 9, 90 },  // Icon::BLink135
-        { Icon::Link, 8, 180 }, // Icon::BLink180
-        { Icon::Link, 9, 180 }, // Icon::BLink225
-        { Icon::Link, 8, 270 }, // Icon::BLink270
-        { Icon::Link, 9, 270 }, // Icon::BLink315
-        { Icon::Media, 10, 0 }, // Icon::BMedia
-        { Icon::Music, 11, 0 }  // Icon::BMusic
+  { Icon::GStart, Icon::Start,    ":/texture/start.png",         "start" },
+  { Icon::GInfo,  Icon::WInfo,    ":/texture/info-white.png",    "winfo" },
+  { Icon::GExit,  Icon::WExit,    ":/texture/door-white.png",    "wexit" },
+  { Icon::GLink,  Icon::WLink000, ":/texture/link000-white.png", "wlink000" },
+  { Icon::GLink,  Icon::WLink045, ":/texture/link045-white.png", "wlink045" },
+  { Icon::GLink,  Icon::WLink090, ":/texture/link090-white.png", "wlink090" },
+  { Icon::GLink,  Icon::WLink135, ":/texture/link135-white.png", "wlink135" },
+  { Icon::GLink,  Icon::WLink180, ":/texture/link180-white.png", "wlink180" },
+  { Icon::GLink,  Icon::WLink225, ":/texture/link225-white.png", "wlink225" },
+  { Icon::GLink,  Icon::WLink270, ":/texture/link270-white.png", "wlink270" },
+  { Icon::GLink,  Icon::WLink315, ":/texture/link315-white.png", "wlink315" },
+  { Icon::GMedia, Icon::WMedia,   ":/texture/media-white.png",   "wmedia" },
+  { Icon::GMusic, Icon::WMusic,   ":/texture/music-white.png",   "wmusic" },
+  { Icon::GInfo,  Icon::BInfo,    ":/texture/info-black.png",    "binfo" },
+  { Icon::GExit,  Icon::BExit,    ":/texture/door-black.png",    "bexit" },
+  { Icon::GLink,  Icon::BLink000, ":/texture/link000-black.png", "blink000" },
+  { Icon::GLink,  Icon::BLink045, ":/texture/link045-black.png", "blink045" },
+  { Icon::GLink,  Icon::BLink090, ":/texture/link090-black.png", "blink090" },
+  { Icon::GLink,  Icon::BLink135, ":/texture/link135-black.png", "blink135" },
+  { Icon::GLink,  Icon::BLink180, ":/texture/link180-black.png", "blink180" },
+  { Icon::GLink,  Icon::BLink225, ":/texture/link225-black.png", "blink225" },
+  { Icon::GLink,  Icon::BLink270, ":/texture/link270-black.png", "blink270" },
+  { Icon::GLink,  Icon::BLink315, ":/texture/link315-black.png", "blink315" },
+  { Icon::GMedia, Icon::BMedia,   ":/texture/media-black.png",   "bmedia" },
+  { Icon::GMusic, Icon::BMusic,   ":/texture/music-black.png",   "bmusic" },
 } ;
 
 
 const char *Icon::textureFile(IconType num) {
-        if (num>sizeof(iconList)) return iconTextures[0] ;
-        return iconTextures[iconList[(int)num].textureIndex] ;
-}
-
-int Icon::textureOrientation(IconType num) {
-        if (num>sizeof(iconList)) return iconList[0].textureOrientation ;
-        return iconList[(int)num].textureOrientation ;
+        if (num>sizeof(iconList)) return iconList[0].icontexture ;
+        return iconList[(int)num].icontexture ;
 }
 
 const char *Icon::menuFile(IconType num) {
@@ -98,3 +80,7 @@ Icon::Group Icon::textureGroup(IconType num) {
         return iconList[(int)num].group ;
 }
 
+const char *Icon::name(IconType num) {
+    if (num>sizeof(iconList)) return iconList[0].iconname ;
+    return iconList[(int)num].iconname ;
+}

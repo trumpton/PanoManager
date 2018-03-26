@@ -27,7 +27,8 @@ class Icon {
 public:
 
     typedef enum {
-        WInfo = 0,
+        Start = 0,
+        WInfo,
         WExit,
         WLink000,
         WLink045,
@@ -54,11 +55,12 @@ public:
     } IconType ;
 
     typedef enum {
-        Info = 0,
-        Exit,
-        Link,
-        Media,
-        Music
+        GStart = 0,
+        GInfo,
+        GExit,
+        GLink,
+        GMedia,
+        GMusic
     } Group ;
 
     const static unsigned int numTextures = 24 ;
@@ -68,6 +70,7 @@ public:
     static int textureOrientation(IconType num) ;
     static const char *menuFile(IconType num) ;
     static Group textureGroup(IconType num) ;
+    static const char *name(IconType num) ;
 
 };
 
