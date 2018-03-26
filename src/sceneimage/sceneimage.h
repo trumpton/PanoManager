@@ -56,6 +56,8 @@ public:
     PM::Err loadImage(QString imagefile, bool loadpreview, bool buildpreview, bool scaleforpreview, bool buildonly) ;
     Face& getFace(int n) ;
 
+    PM::Err exportVerticalPreview(int width, int *sequence, QString filename) ;
+
 signals:
     void progressUpdate(QString message) ;
     void abort() ;

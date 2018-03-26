@@ -26,6 +26,8 @@
 #include <QFile>
 #include <QApplication>
 #include <QStandardPaths>
+#include <QPainter>
+#include <QImage>
 #include "../errors/pmerrors.h"
 
 SceneImage::SceneImage() : QObject()
@@ -165,6 +167,23 @@ Face &SceneImage::getFace(int n)
     return m_faces[n] ;
 }
 
+
+PM::Err SceneImage::exportVerticalPreview(int width, int * sequence, QString filename)
+{
+    QImage target(width, width*6, QImage::Format_ARGB32) ;
+    QPainter painter(&target) ;
+
+    for (int i=0; i<6; i++) {
+        int face=sequence[i] ;
+        painter.drawImage(0, i*width, getFace(face).scaled(width, width)) ;
+    }
+
+    if (!target.save(filename)) {
+        return PM::OutputWriteError ;
+    } else {
+        return PM::Ok ;
+    }
+}
 
 // Map a part of the equirectangular panorama (in) to a cube face, using the MapTranslation
 // which provides the corresponding equirectangular coordinates for each face coordinate.
