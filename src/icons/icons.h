@@ -67,10 +67,14 @@ public:
 
 public:
     static const char *textureFile(IconType num) ;
-    static int textureOrientation(IconType num) ;
     static const char *menuFile(IconType num) ;
     static Group textureGroup(IconType num) ;
     static const char *name(IconType num) ;
+
+    // Rotatable Versions of the files
+    const char *rotatableTextureFile(IconType num) ;
+    const char *uprightIconName(IconType num) ;
+    static int textureOrientation(IconType num) ;
 
 };
 
