@@ -1,0 +1,35 @@
+
+IMPORTING MARZIPANO TO PANOMANAGER
+
+This folder contains an instantiation of marzipano, however some changes have
+been made to the files to support a directory hierarchy which is more akin to
+that used by pannellum.
+
+mtour.html is the main html file which is used to launch the viewer.  It is a 
+modified version of index.html, and has two macros included: $TITLE$ and
+$MZLIST$ which are expanded when the file is put in place.  In addition, the
+file has been modified to expect all of the marzipano script and configuration
+files in a marzipano subdirectory.
+
+index.js has been renamed to mindex.js, and modified to expect the tour image 
+files in the parent directory alongside mtour.html.
+
+To import an updated version of Marzipano:
+
+Create a new mtour.html if required, based on the marzipano index.html
+Modify the marzipano index.js file to change the location of files, i.e. change:
+
+    var urlPrefix = "tiles";
+    var source = Marzipano.ImageUrlSource.fromString(
+      urlPrefix + "/" + data.id + "/{z}/{f}/{y}/{x}.jpg",
+      { cubeMapPreviewUrl: urlPrefix + "/" + data.id + "/preview.jpg" });
+
+To:
+
+    var source = Marzipano.ImageUrlSource.fromString(
+      data.id + "/{z}/{f}{y}_{x}.jpg",
+      { cubeMapPreviewUrl: data.id + "/1/f0_0.jpg" });
+
+And:
+
+    Globally replace all references to 'img/ with '/marzipano/img/
