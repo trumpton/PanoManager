@@ -108,25 +108,25 @@ void Node::setType(Icon::IconType type)
 bool Node::isLink()
 {
     Icon::Group g = Icon::textureGroup(m_type) ;
-    return (g == Icon::Link || g == Icon::Exit) ;
+    return (g == Icon::GLink || g == Icon::GExit) ;
 }
 
 bool Node::isInfo()
 {
     Icon::Group g = Icon::textureGroup(m_type) ;
-    return (g == Icon::Info) ;
+    return (g == Icon::GInfo) ;
 }
 
 bool Node::isMedia()
 {
     Icon::Group g = Icon::textureGroup(m_type) ;
-    return (g == Icon::Media) ;
+    return (g == Icon::GMedia) ;
 }
 
 bool Node::isMusic()
 {
     Icon::Group g = Icon::textureGroup(m_type) ;
-    return (g == Icon::Music) ;
+    return (g == Icon::GMusic) ;
 }
 
 void Node::setLat(int lat)
