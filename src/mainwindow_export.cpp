@@ -29,6 +29,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QMessageBox>
+#include "icons/icons.h"
 
 #include "sceneimage/sceneimage.h"
 #include "icons/icons.h"
@@ -52,7 +53,8 @@
 
 void MainWindow::on_action_ExportMarzipano_triggered()
 {
-    static const char *masks[] = { "f%y_%x.jpg", "r%y_%x.jpg", "b%y_%x.jpg", "l%y_%x.jpg", "u%y_%x.jpg", "d%y_%x.jpg" } ;
+    static const char *masks[] = { "f/%y/%x.jpg", "r/%y/%x.jpg", "b/%y/%x.jpg", "l/%y/%x.jpg", "u/%y/%x.jpg", "d/%y/%x.jpg" } ;
+    static int exportpreviewsequence[6] = { 2, 5, 0, 3, 1, 4 } ;
     int tileresolution = 256 ;
 
     QFileInfo exe(QCoreApplication::applicationFilePath()) ;
@@ -75,7 +77,6 @@ void MainWindow::on_action_ExportMarzipano_triggered()
 
     lastoutputfolder = dir ;
     settings->setValue("lastoutputfolder", lastoutputfolder) ;
-    dir = dir + "/" ;
 
     QJsonObject json ;
     QString marzlist = "" ;
@@ -99,7 +100,7 @@ void MainWindow::on_action_ExportMarzipano_triggered()
         Scene& scene = project.sceneAt(i) ;
         m_prog.setText1( QString("Exporting ") + scene.title()) ;
         int levels, cuberesolution ;
-        err = exportFaces(scene, tileresolution, masks, dir + scene.titleId(), &levels, &cuberesolution) ;
+        err = exportFaces(scene, tileresolution, masks, dir + QString("/") + scene.titleId(), &levels, &cuberesolution, 256, exportpreviewsequence) ;
 
         // List for the html file
         marzlist = marzlist + QString("<a href='#' class='scene' data-id='") +
@@ -118,8 +119,8 @@ void MainWindow::on_action_ExportMarzipano_triggered()
             QJsonObject jo_level ;
             jo_level.insert("tileSize", tileresolution) ;
             jo_level.insert("size", tileresolution * pow(2,l)) ;
-            if (l==0) jo_level.insert("fallbackOnly", true) ;
             ja_levels.append(jo_level) ;
+            if (l==0) ja_levels.append(jo_level) ; // First level needs repeating for marzipano
         }
         jo_scene.insert("levels", ja_levels) ;
 
@@ -140,10 +141,13 @@ void MainWindow::on_action_ExportMarzipano_triggered()
             QJsonObject jo_node ;
             jo_node.insert("yaw", (node.lon() * 3.141592654*2)/360000) ;
             jo_node.insert("pitch", (node.lat() * 3.141592654)/180000) ;
-            jo_node.insert("icon", Icon::name(node.type())) ;
+            jo_node.insert("icon", QString("pmicons/") + Icon::uprightIconName(node.type()) + QString(".png")) ;
+            jo_node.insert("rotation", (Icon::textureOrientation(node.type())*3.141592654*2)/360) ;
+            jo_node.insert("title", node.title()) ;
 
             if (node.isInfo()) {
 
+                jo_node.insert("text", node.description().replace("\n","br/>")) ;
                 ja_info.append(jo_node) ;
 
             } else if (node.isLink()) {
@@ -181,7 +185,7 @@ void MainWindow::on_action_ExportMarzipano_triggered()
         m_prog.setText1("Saving Tour Configuration") ;
         QJsonDocument doc ;
         doc.setObject(json);
-        QFile configoutput(dir + "mtour.js") ;
+        QFile configoutput(dir + "/mtour.js") ;
         configoutput.open(QIODevice::WriteOnly | QIODevice::Text) ;
         configoutput.write(QString("var APP_DATA = ").toLatin1()) ;
         configoutput.write(doc.toJson()) ;
@@ -194,6 +198,14 @@ void MainWindow::on_action_ExportMarzipano_triggered()
         m_prog.setText1("Saving Marzipano Files");
         if (!copyResourceFolder(libFolder, dir, project.overwriteLibrary()))
             err=PM::UnableToTransferResourceFiles ;
+    }
+
+    if (err==PM::Ok) {
+        // Write the Marzipano Supporting Files
+        m_prog.setText1("Saving Custom Icons");
+        if (!copyResourceIcons(dir + QString("/pmicons"), 256, true)) {
+            err=PM::UnableToTransferResourceFiles ;
+        }
     }
 
     if (err==PM::Ok) {
@@ -218,7 +230,6 @@ void MainWindow::on_action_ExportMarzipano_triggered()
 
 }
 
-
 //----------------------------------------------------------------------------------------------------------------------
 //
 // on_action_ExportPanellum_triggered
@@ -226,7 +237,8 @@ void MainWindow::on_action_ExportMarzipano_triggered()
 
 void MainWindow::on_action_ExportPanellum_triggered()
 {
-    static const char *masks[] = { "f%y_%x.jpg", "r%y_%x.jpg", "b%y_%x.jpg", "l%y_%x.jpg", "u%y_%x.jpg", "d%y_%x.jpg" } ;
+    static const char *masks[] = { "f/%y/%x.jpg", "r/%y/%x.jpg", "b/%y/%x.jpg", "l/%y/%x.jpg", "u/%y/%x.jpg", "d/%y/%x.jpg" } ;
+    static int exportpreviewsequence[6] = { 2, 5, 0, 3, 1, 4 } ;
     int tileresolution = 256 ;
 
     QFileInfo exe(QCoreApplication::applicationFilePath()) ;
@@ -249,7 +261,6 @@ void MainWindow::on_action_ExportPanellum_triggered()
 
     lastoutputfolder = dir ;
     settings->setValue("lastoutputfolder", lastoutputfolder) ;
-    dir = dir + "/" ;
 
     QJsonObject json ;
 
@@ -281,18 +292,18 @@ void MainWindow::on_action_ExportPanellum_triggered()
 
         Scene& scene = project.sceneAt(i) ;
         int levels, cuberesolution ;
-        err = exportFaces(scene, tileresolution, masks, dir + scene.titleId(), &levels, &cuberesolution) ;
+        err = exportFaces(scene, tileresolution, masks, dir + QString("/") + scene.titleId(), &levels, &cuberesolution, 256, exportpreviewsequence) ;
 
         QJsonObject jo_scene ;
         jo_scene.insert("northoffset", scene.northOffset()/1000) ;
         jo_scene.insert("title", scene.title()) ;
-        jo_scene.insert("preview", "/1/f0_0.jpg") ;
+        jo_scene.insert("preview", "/1/f/0/0.jpg") ;
         jo_scene.insert("type", "multires") ;
 
         QJsonObject jo_multires ;
         jo_multires.insert("basePath", QString("./") + scene.titleId()) ;
-        jo_multires.insert("path", "/%l/%s%y_%x") ;
-        jo_multires.insert("fallbackPath", "/1/%s0_0") ;
+        jo_multires.insert("path", "/%l/%s/%y/%x") ;
+        jo_multires.insert("fallbackPath", "/1/%s/%y/%x") ;
         jo_multires.insert("tileResolution", tileresolution) ;
         jo_multires.insert("maxLevel", levels) ;
         jo_multires.insert("extension", "jpg") ;
@@ -303,22 +314,28 @@ void MainWindow::on_action_ExportPanellum_triggered()
 
         QJsonArray ja_hotspots ;
         for (int j=0; j<scene.nodeCount(); j++) {
+
             Node& node = scene.nodeAt(j) ;
             QJsonObject jo_hotspot ;
             jo_hotspot.insert("pitch", node.lat()/1000.0) ;
             jo_hotspot.insert("yaw", node.lon()/1000.0) ;
+
             if (node.isLink()) {
+
                 jo_hotspot.insert("type", "scene") ;
                 jo_hotspot.insert("text", node.title()) ;
                 jo_hotspot.insert("sceneId", project.scene(node.destId()).titleId()) ;
                 jo_hotspot.insert("targetPitch", node.arrivalLat()/1000.0) ;
                 jo_hotspot.insert("targetYaw", node.arrivalLon()/1000.0) ;
+
             } else if (node.isInfo() || node.isMedia() || node.isMusic()){
+
                 jo_hotspot.insert("type", "info") ;
                 QString title = node.title() ;
                 if (!node.description().isEmpty()) title = title + QString(" - ") + node.description() ;
                 jo_hotspot.insert("text", node.title() + QString(" ") + node.description()) ;
                 if (!node.url().isEmpty()) { jo_hotspot.insert("URL", node.url()) ; }
+
             }
 
             ja_hotspots.append(jo_hotspot) ;
@@ -338,7 +355,7 @@ void MainWindow::on_action_ExportPanellum_triggered()
         m_prog.setText1("Saving Tour Configuration") ;
         QJsonDocument doc ;
         doc.setObject(json);
-        QFile configoutput(dir + "ptour.js") ;
+        QFile configoutput(dir + "/ptour.js") ;
         configoutput.open(QIODevice::WriteOnly | QIODevice::Text) ;
         configoutput.write(QString("var tourdata = ").toLatin1()) ;
         configoutput.write(doc.toJson()) ;
@@ -375,6 +392,29 @@ void MainWindow::on_action_ExportPanellum_triggered()
     }
 }
 
+
+//----------------------------------------------------------------------------------------------------------------------
+//
+// copyResourceIcons
+//
+
+bool MainWindow::copyResourceIcons(QString destfolder, int size, bool ignorerotated)
+{
+    bool success=true ;
+    QDir icondir ;
+    icondir.mkpath(destfolder) ;
+    for (int i=(int)Icon::WInfo; i<=(int)Icon::BMusic; i++) {
+        if (Icon::textureOrientation((Icon::IconType)i)==0 || !ignorerotated) {
+            QImage icon(Icon::textureFile((Icon::IconType)i)) ;
+            success &= icon.scaled(size, size).
+                    save(destfolder +
+                         QString("/") +
+                         Icon::name((Icon::IconType)i) +
+                        QString(".png")) ;
+    }
+    }
+    return success ;
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 //
@@ -465,7 +505,7 @@ bool MainWindow::checkProject(QString dir)
 // exportFaces - Perform the export
 //
 
-PM::Err MainWindow::exportFaces(Scene scene, int tilesize, const char *masks[], QString folder, int *levels, int *cuberesolution)
+PM::Err MainWindow::exportFaces(Scene scene, int tilesize, const char *masks[], QString folder, int *levels, int *cuberesolution, int previewwidth, int *previewsequence)
 {
     SceneImage sceneimg ;
     if (!levels || !cuberesolution) return PM::InvalidPointer ;
@@ -502,6 +542,10 @@ PM::Err MainWindow::exportFaces(Scene scene, int tilesize, const char *masks[], 
         *levels = res ;
         m_prog.setDelta(100) ;
 
+    }
+
+    if (err==PM::Ok) {
+        err=sceneimg.exportVerticalPreview(previewwidth, previewsequence, folder + QString("/preview.jpg")) ;
     }
 
     disconnect(&m_prog, SIGNAL(abortPressed()), &sceneimg, SLOT(handleAbort())) ;

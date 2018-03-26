@@ -104,11 +104,12 @@ private:
     void refreshNodes(QString selectedNode) ;
     void buildExportTiles(QString outputFolder, QString mask) ;
     bool checkProject(QString dir) ;
-    PM::Err exportFaces(Scene scene, int tilesize, const char *masks[], QString folder, int *levels, int *cuberesolution) ;
+    PM::Err exportFaces(Scene scene, int tilesize, const char *masks[], QString folder, int *levels, int *cuberesolution, int previewwidth, int *previewsequence) ;
     PM::Err DoBuild(QString file, SceneImage *scene, int seq, int of, bool loadpreview, bool buildpreview, bool scaleforpreview, bool buildonly) ;
     void exportPanellumFiles(QString folder, QString title);
     void exportMarzipanoFiles(QString folder, QString title);
     bool copyResourceFolder(QString source, QString dest, bool forceOverwrite) ;
+    bool copyResourceIcons(QString destfolder, int size, bool ignorerotated) ;
     bool copyFile(QString source, QString dest, bool forceOverwrite) ;
 
 public slots:
