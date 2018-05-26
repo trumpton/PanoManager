@@ -19,6 +19,7 @@
 //
 
 #include "maptranslation.h"
+#include <math.h>
 #include <QFile>
 #include <QDataStream>
 #include <QProgressBar>
