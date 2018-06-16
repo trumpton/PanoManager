@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Installer>
+  <Name>Pano Manager</Name>
+  <Version>1.0.0</Version>
+  <Title>Pano Manager Installer</Title>
+  <Publisher>Vizier Design</Publisher>
+  <StartMenuDir>PanoManager</StartMenuDir>
+  <TargetDir>@ApplicationsDirX86@/PanoManager</TargetDir>
+  <RemoteRepositories>
+    <Repository>
+      <Url>http://www.vizier.uk/repository/panomanager-linux-5.9.5</Url>
+    </Repository>
+  </RemoteRepositories>
+</Installer>
+
+
