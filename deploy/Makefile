@@ -2,8 +2,7 @@
 APPNAME=PanoManager
 REPONAME=panomanager
 
-default:
-	echo "make linux | win32 | clean"
+default: linux
 
 clean:
 	rm -rf repository/*
@@ -12,13 +11,10 @@ clean:
 
 linux: envcheck linux-copyfiles linux-installer linux-repo linux-offline-installer
 
-win32: envcheck win32-copyfiles win32-installer win32-repo win32-offline-installer
-
 envcheck:
 ifndef QTVERSION
 	$(error QTVERSION variable not set, for example QTVERSION=5.9.5)
 endif
-
 
 linux-copyfiles:
 	/bin/cp ../build*/*/PanoManager packages/com.trumpton.base.panomanager/data
@@ -31,19 +27,4 @@ linux-installer:
 
 linux-repo:
 	repogen -p packages repository/$(REPONAME)-linux-$(QTVERSION)
-
-
-
-
-win32-offline-installer:
-	binarycreator.exe --offline-only -p packages -c config/config-win32-$(QTVERSION).xml repository/$(APPNAME)OfflineInstaller.exe
-
-win32-installer:
-	binarycreator.exe --online-only -p packages -c config/config-win32-$(QTVERSION).xml repository/$(APPNAME)Installer.exe
-
-win32-repo:
-	repogen -p packages repository/$(REPONAME)-win32-$(QTVERSION)
-
-win32-copyfiles:
-
 
