@@ -1,3 +1,9 @@
+
+function Component()
+{
+    // default constructor
+}
+
 Component.prototype.createOperations = function()
 {
     component.createOperations();
@@ -8,5 +14,11 @@ Component.prototype.createOperations = function()
             	"workingDirectory=@TargetDir@", 
 		"iconPath=@TargetDir@/bin/PanoManager.exe",
             	"iconId=1", "description=Panorama Manager");
+        component.addOperation("CreateShortcut", 
+		"@TargetDir@/maintenancetool.exe", 
+		"@StartMenuDir@/PanoManagerMaintenanceTool.lnk",
+            	"workingDirectory=@TargetDir@", 
+		"iconPath=@TargetDir@/bin/PanoManager.exe",
+            	"iconId=1", "description=Uninstall / Modify Panorama Manager");
     }
 }

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Installer>
-  <Name>Pano Manager</Name>
+  <Name>Pano Manager (32-bit)</Name>
   <Version>1.0.0</Version>
-  <Title>Pano Manager Installer</Title>
+  <Title>Pano Manager 32-bit Installer</Title>
   <Publisher>Vizier Design</Publisher>
   <StartMenuDir>PanoManager</StartMenuDir>
   <TargetDir>@ApplicationsDirX86@/PanoManager</TargetDir>

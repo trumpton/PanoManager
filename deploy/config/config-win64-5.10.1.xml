@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Installer>
+  <Name>Pano Manager (64 bit)</Name>
+  <Version>1.0.0</Version>
+  <Title>Pano Manager 64-bit Installer</Title>
+  <Publisher>Vizier Design</Publisher>
+  <StartMenuDir>PanoManager</StartMenuDir>
+  <TargetDir>@ApplicationsDirX64@/PanoManager</TargetDir>
+  <RemoteRepositories>
+    <Repository>
+      <Url>http://www.vizier.uk/repository/panomanager-win64-5.10.1</Url>
+    </Repository>
+  </RemoteRepositories>
+</Installer>
+
+
