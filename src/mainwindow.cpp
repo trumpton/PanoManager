@@ -89,11 +89,15 @@ MainWindow::~MainWindow()
 
 void MainWindow::setOptions(bool useNativeFileDialog)
 {
+    qDebug() << "setOption(" << useNativeFileDialog << ")" ;
+
     if (!useNativeFileDialog) {
         m_fdOptions = QFileDialog::DontUseNativeDialog ;
     } else {
         m_fdOptions = (QFileDialog::Option)0 ;
     }
+    qDebug() << "setOption complete" ;
+
 }
 
 //======================================================================================================================
@@ -343,12 +347,18 @@ void MainWindow::refreshNodes(QString selectedNode)
 
 QListWidgetItem* MainWindow::findListWidgetItemById(QListWidget *widget, QString id)
 {
+    qDebug() << "findListWidgetById(" << id << ")" ;
+
     if (widget) {
         int count = widget->count() ;
         for (int i=0; i<count; i++) {
-            if (widget->item(i)->data(Qt::UserRole).toString().compare(id)==0) return widget->item(i) ;
+            if (widget->item(i)->data(Qt::UserRole).toString().compare(id)==0) {
+                qDebug() << "findListWidgetById completed, index=" << i ;
+                return widget->item(i) ;
+            }
         }
     }
+    qDebug() << "findListWidgetById completed (nothing found)" ;
     return NULL ;
 }
 
@@ -442,6 +452,8 @@ void MainWindow::changeScene(QString id)
     QString title ;
     PM::Err err = PM::Ok ;
 
+    qDebug() << "changeScene( " << id << ")" ;
+
     Scene& selectedScene = project.scene(id) ;
 
     if (project.scene(selectedScene.id()).isValid()) {
@@ -489,7 +501,7 @@ void MainWindow::changeScene(QString id)
 
     }
 
-
+    qDebug() << "changeScene complete" ;
 }
 
 //======================================================================================================================
@@ -523,6 +535,8 @@ void MainWindow::on_setNorth_pushButton_clicked()
 //
 void MainWindow::on_sceneTitle_lineEdit_editingFinished()
 {
+    qDebug() << "on_sceneTitle_lineEdit_editingFinished()" ;
+
     Scene& scene = project.scene(m_currentScene) ;
     QString arg1 = ui->sceneTitle_lineEdit->text() ;
     if (scene.title().compare(arg1)!=0) {
@@ -530,6 +544,7 @@ void MainWindow::on_sceneTitle_lineEdit_editingFinished()
         refreshScenes(m_currentScene) ;
     }
 
+    qDebug() << "on_sceneTitle_lineEdit_editingFinished complete" ;
 }
 
 //======================================================================================================================
@@ -547,8 +562,10 @@ void MainWindow::on_sceneTitle_lineEdit_editingFinished()
 
 void MainWindow::on_realBearingChanged(int lat, int lon)
 {
+    qDebug() << "on_realBearingChanged( " << lat << ", " << lon << ")" ;
     ui->currentLon_label->setText(QString::number(lon/1000)) ;
     ui->currentLat_label->setText(QString::number(lat/1000)) ;
+    qDebug() << "on_realBearingChanged complete" ;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -558,12 +575,17 @@ void MainWindow::on_realBearingChanged(int lat, int lon)
 
 void MainWindow::on_turnAround_pushButton_clicked()
 {
+    qDebug() << "on_turnAround_pushButton_clicked()" ;
+
     int lat = ui->display->lat() ;
     int lon = ui->display->lon() ;
     lat = -lat ;
     lon+=180000 ;
     if (lon>=360000) lon-=360000 ;
     ui->display->setCamera(lat, lon) ;
+
+    qDebug() << "on_turnAround_pushButton_clicked complete" ;
+
 }
 
 
@@ -617,7 +639,9 @@ void MainWindow::on_nodeDelete_pushButton_clicked()
 
 void MainWindow::on_node_listWidget_itemClicked(QListWidgetItem *item)
 {
-    QString newNodeId = item->data(Qt::UserRole).toString() ;
+    QString newNodeId ;
+    if (item) newNodeId=item->data(Qt::UserRole).toString() ;
+
     qDebug() << "node_listWidget_itemClicked(" << newNodeId << ")" ;
     refreshNodes(newNodeId) ;
     int lat = project.scene(m_currentScene).node(m_currentNode).lat() ;
@@ -647,6 +671,8 @@ void MainWindow::on_node_listWidget_itemClicked(QListWidgetItem *item)
 
 void MainWindow::on_nodeGo_pushButton_clicked()
 {
+    qDebug() << "on_nodeGo_pushButton_clicked()" ;
+
     Node& node = project.scene(m_currentScene).node(m_currentNode) ;
     Scene& dest = project.scene(node.destId()) ;
     if (dest.isValid()) {
@@ -656,6 +682,9 @@ void MainWindow::on_nodeGo_pushButton_clicked()
         int lat = 0 ;
         ui->display->setCamera(lat, lon) ;
     }
+
+    qDebug() << "on_nodeGo_pushButton_clicked complete";
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -665,11 +694,16 @@ void MainWindow::on_nodeGo_pushButton_clicked()
 
 void MainWindow::on_nodedestination_comboBox_currentIndexChanged(int index)
 {
+    qDebug() << "on_nodedestination_comboBox_currentIndexChanged( " << index << ")" ;
+
     Node& node = project.scene(m_currentScene).node(m_currentNode) ;
     if (node.destId().compare(project.sceneAt(index).id())!=0) {
         node.setDestId(project.sceneAt(index).id()) ;
         refreshNodes(m_currentNode) ;
     }
+
+    qDebug() << "on_nodedestination_comboBox_currentIndexChanged complete" ;
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -678,6 +712,8 @@ void MainWindow::on_nodedestination_comboBox_currentIndexChanged(int index)
 //
 void MainWindow::on_node_arrivalLat_lineEdit_editingFinished()
 {
+    qDebug() << "on_node_arrivalLat_lineEdit_editingFinished()" ;
+
     Node& node = project.scene(m_currentScene).node(m_currentNode) ;
     QString arg1 = ui->node_arrivalLat_lineEdit->text() ;
     int bearing = arg1.toDouble() * 1000 ;
@@ -685,6 +721,8 @@ void MainWindow::on_node_arrivalLat_lineEdit_editingFinished()
         node.setArrivalLat(bearing) ;
         refreshNodes(m_currentNode) ;
     }
+    qDebug() << "on_node_arrivalLat_lineEdit_editingFinished complete" ;
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -693,6 +731,8 @@ void MainWindow::on_node_arrivalLat_lineEdit_editingFinished()
 //
 void MainWindow::on_node_arrivalLon_lineEdit_editingFinished()
 {
+    qDebug() << "on_node_arrivalLon_lineEdit_editingFinished()" ;
+
     Node& node = project.scene(m_currentScene).node(m_currentNode) ;
     QString arg1 = ui->node_arrivalLon_lineEdit->text() ;
     int bearing = arg1.toDouble() * 1000 ;
@@ -700,6 +740,9 @@ void MainWindow::on_node_arrivalLon_lineEdit_editingFinished()
         node.setArrivalLon(bearing) ;
         refreshNodes(m_currentNode) ;
     }
+
+    qDebug() << "on_node_arrivalLon_lineEdit_editingFinished complete" ;
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -708,12 +751,17 @@ void MainWindow::on_node_arrivalLon_lineEdit_editingFinished()
 //
 void MainWindow::on_nodetitle_lineEdit_editingFinished()
 {
+    qDebug() << "on_nodetitle_lineEdit_editingFinished()" ;
+
     Node& node = project.scene(m_currentScene).node(m_currentNode) ;
     QString text = ui->nodetitle_lineEdit->text() ;
     if (node.title().compare(text)!=0) {
         node.setTitle(text); ;
         refreshNodes(m_currentNode) ;
     }
+
+    qDebug() << "on_nodetitle_lineEdit_editingFinished complete" ;
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -723,12 +771,17 @@ void MainWindow::on_nodetitle_lineEdit_editingFinished()
 
 void MainWindow::on_nodedescription_plainTextEdit_textChanged()
 {
+    qDebug() << "on_nodedescription_plainTextEdit_textChanged()" ;
+
     Node& node = project.scene(m_currentScene).node(m_currentNode) ;
     QString text = ui->nodedescription_plainTextEdit->document()->toPlainText() ;
     if (node.description().compare(text)!=0) {
         node.setDescription(text); ;
         refreshNodes(m_currentNode) ;
     }
+
+    qDebug() << "on_nodedescription_plainTextEdit_textChanged complete" ;
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -737,12 +790,17 @@ void MainWindow::on_nodedescription_plainTextEdit_textChanged()
 //
 void MainWindow::on_nodeUrl_lineEdit_editingFinished()
 {
+    qDebug() << "on_nodeUrl_lineEdit_editingFinished()" ;
+
     Node& node = project.scene(m_currentScene).node(m_currentNode) ;
     QString arg1 = ui->nodeUrl_lineEdit->text() ;
     if (node.url().compare(arg1)!=0) {
         node.setUrl(arg1) ;
         refreshNodes(m_currentNode) ;
     }
+
+    qDebug() << "on_nodeUrl_lineEdit_editingFinished complete" ;
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -752,12 +810,15 @@ void MainWindow::on_nodeUrl_lineEdit_editingFinished()
 
 void MainWindow::on_nodeSet_pushButton_clicked()
 {
-    qDebug() << "Node_Set(" << ui->display->lon() << ", " << ui->display->lat() << ")" ;
+    qDebug() << "on_nodeSet_pushButton_clicked(" << ui->display->lon() << ", " << ui->display->lat() << ")" ;
 
     Node& node = project.scene(m_currentScene).node(m_currentNode) ;
     node.setLat(ui->display->lat()) ;
     node.setLon(ui->display->lon()) ;
     refreshNodes(m_currentNode) ;
+
+    qDebug() << "on_nodeSet_pushButton_clicked complete" ;
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -766,12 +827,17 @@ void MainWindow::on_nodeSet_pushButton_clicked()
 //
 void MainWindow::on_nodetype_comboBox_currentIndexChanged(int index)
 {
+    qDebug() << "on_nodetype_comboBox_currentIndexChanged( " << index << " )" ;
+
     Node& node = project.scene(m_currentScene).node(m_currentNode) ;
     if (node.type() != index) {
         node.setType((Icon::IconType)index) ;
         if (node.title().isEmpty()) node.setTitle(ui->nodedestination_comboBox->currentText()) ;
         refreshNodes(m_currentNode) ;
     }
+
+    qDebug() << "on_nodetype_comboBox_currentIndexChanged complete" ;
+
 }
 
 //======================================================================================================================
@@ -791,7 +857,7 @@ void MainWindow::on_nodetype_comboBox_currentIndexChanged(int index)
 
 void MainWindow::on_action_Open_Project_triggered()
 {
-    qDebug() << "Open_Project()" ;
+    qDebug() << "on_action_Open_Project_triggered()" ;
 
     // Clear out, and put app in a known fixed state
     on_action_New_Project_triggered();
@@ -811,6 +877,9 @@ void MainWindow::on_action_Open_Project_triggered()
         refreshScenes("") ;
         refreshNodes("") ;
     }
+
+    qDebug() << "on_action_Open_Project_triggered complete" ;
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -820,7 +889,7 @@ void MainWindow::on_action_Open_Project_triggered()
 
 void MainWindow::on_action_Save_Project_triggered()
 {
-    qDebug() << "Save_Project()" ;
+    qDebug() << "on_action_Save_Project_triggered()" ;
 
     if (project.isDirty()) {
         QString fileName = settings->value("lastfilename", "").toString() ;
@@ -830,6 +899,9 @@ void MainWindow::on_action_Save_Project_triggered()
             project.SaveProject(fileName) ;
         }
     }
+
+    qDebug() << "on_action_Save_Project_triggered complete" ;
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -839,7 +911,7 @@ void MainWindow::on_action_Save_Project_triggered()
 
 void MainWindow::on_action_Save_Project_As_triggered()
 {
-    qDebug() << "Save_Project_As()" ;
+    qDebug() << "on_action_Save_Project_As_triggered()" ;
 
     if (project.isDirty()) {
         QString lastdir = settings->value("lastdir", "").toString() ;
@@ -851,6 +923,9 @@ void MainWindow::on_action_Save_Project_As_triggered()
             on_action_Save_Project_triggered();
         }
     }
+
+    qDebug() << "on_action_Save_Project_As_triggered complete" ;
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -860,7 +935,7 @@ void MainWindow::on_action_Save_Project_As_triggered()
 
 void MainWindow::on_action_New_Project_triggered()
 {
-    qDebug() << "New_Project()" ;
+    qDebug() << "on_action_New_Project_triggered()" ;
 
     if (project.isDirty()) {
         on_action_Save_Project_triggered() ;
@@ -876,6 +951,8 @@ void MainWindow::on_action_New_Project_triggered()
     ui->display->setNorthCompassLon(0);
     refreshScenes("") ;
     refreshNodes("") ;
+
+    qDebug() << "on_action_New_Project_triggered complete" ;
 
 }
 
@@ -898,7 +975,7 @@ void MainWindow::handleBuildHiresPercentUpdate(int percent)
 
 void MainWindow::on_action_Build_Hi_Res_Scenes_triggered()
 {
-    qDebug() << "Build_Hi_Res_Scenes()" ;
+    qDebug() << "on_action_Build_Hi_Res_Scenes_triggered()" ;
 
     QList<int> scenesList ;
 
@@ -929,6 +1006,9 @@ void MainWindow::on_action_Build_Hi_Res_Scenes_triggered()
     if (err!=PM::Ok) {
         QMessageBox::critical(NULL, "Build Hi-res Error", PM::errString(err)) ;
     }
+
+    qDebug() << "on_action_Build_Hi_Res_Scenes_triggered complete" ;
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -937,13 +1017,23 @@ void MainWindow::on_action_Build_Hi_Res_Scenes_triggered()
 //
 PM::Err MainWindow::DoBuild(QString file, SceneImage *scene, int seq, int of, bool loadpreview, bool buildpreview, bool scaleforpreview, bool buildonly)
 {
-    PM::Err err = PM::Ok ;
-    m_sceneNum = seq ;
-    connect(scene, SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
-    connect(&m_prog, SIGNAL(abortPressed()), scene, SLOT(handleAbort())) ;
-    err = scene->loadImage(file, loadpreview, buildpreview, scaleforpreview, buildonly) ;
-    disconnect(&m_prog, SIGNAL(abortPressed()), scene, SLOT(handleAbort())) ;
-    disconnect(scene, SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
+    Q_UNUSED(of) ;
+
+    qDebug() << "DoBuild( " << file << ", " << seq << ")" ;
+
+    PM::Err err = PM::InvalidPointer ;
+
+    if (scene) {
+        m_sceneNum = seq ;
+        connect(scene, SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
+        connect(&m_prog, SIGNAL(abortPressed()), scene, SLOT(handleAbort())) ;
+        err = scene->loadImage(file, loadpreview, buildpreview, scaleforpreview, buildonly) ;
+        disconnect(&m_prog, SIGNAL(abortPressed()), scene, SLOT(handleAbort())) ;
+        disconnect(scene, SIGNAL(progressUpdate(QString)), this, SLOT(handleProgressUpdate(QString))) ;
+    }
+
+    qDebug() << "DoBuild complete" ;
+
     return err ;
 }
 
