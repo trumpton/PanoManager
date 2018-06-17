@@ -36,18 +36,36 @@
 //
 
 
+
+
 SceneViewWidget::SceneViewWidget(QWidget *parent) : QGLWidget(parent)
 {
-    clearScene(true) ;
+    m_glinitialised =false ;
+
+    m_lat=0.0 ; m_lon=0.0 ;
+    startLat=0.0 ; startLon=0.0 ;
+    m_width=10 ; m_height=10 ;
+    m_northOffsetLon=0 ;
+
     m_compass=NULL ; m_selected=NULL ;
     m_xhairr=NULL ; m_xhairb=NULL ;
     for (int i=0; i<Icon::numTextures; i++) m_icon[i]=NULL ;
+
+    m_front=NULL ; m_rear=NULL ;
+    m_left=NULL ; m_right=NULL ;
+    m_top=NULL ; m_bottom=NULL ;
+
     m_selection="" ;
+
+    m_nodes=NULL ;
+
+    clearScene(true) ;
 }
 
 SceneViewWidget::~SceneViewWidget()
 {
     clearScene() ;
+    m_glinitialised=false ;
     if (m_selected) delete m_selected ;
     if (m_compass) delete m_compass ;
     if (m_xhairr) delete m_xhairr ;
@@ -63,6 +81,8 @@ SceneViewWidget::~SceneViewWidget()
 
 bool SceneViewWidget::clearScene(bool initialisation)
 {
+    if (!m_glinitialised) return false ;
+
     if (!initialisation) {
         if (m_front) delete m_front ;
         if (m_left) delete m_left ;
@@ -145,6 +165,8 @@ void SceneViewWidget::initializeGL()
 
     initializeOpenGLFunctions(); // NIO
 
+    m_glinitialised=true ;
+
     glEnable(GL_DEPTH_TEST) ;
     glEnable(GL_CULL_FACE) ;
 
@@ -168,6 +190,9 @@ void SceneViewWidget::resizeGL(int w, int h)
     const float verticalAngle = 70.0f ;
     const float nearPlane = 1.0f ;
     const float farPlane = 60.0f ;
+
+    if (!m_glinitialised) return ;
+
     m_width = w ;
     m_height = h ;
     float aspectRatio = w / (float)h ;
@@ -178,6 +203,8 @@ void SceneViewWidget::resizeGL(int w, int h)
 
 void SceneViewWidget::paintGL()
 {
+    if (!m_glinitialised) return ;
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) ;
 
     // Draw the Skybox
@@ -216,7 +243,7 @@ void SceneViewWidget::paintGL()
 
 void SceneViewWidget::drawTexturedSquare(QOpenGLTexture *texture, QMatrix4x4 position, bool applycameraoffset)
 {
-    if (!texture) return ;
+    if (!texture || !m_glinitialised) return ;
 
     m_program.bind() ;
 

@@ -97,6 +97,8 @@ protected:
 
 private:
 
+    bool m_glinitialised ;
+
     float m_lat, m_lon ;              // Current view direction
 
     QOpenGLShaderProgram m_program ;  // Shader Program
