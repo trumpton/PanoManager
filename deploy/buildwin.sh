@@ -10,39 +10,58 @@ pwd
 
 source ./buildvars.inc
 
-PATH=${QTHOME}/bin:${QTINST}/bin:${GCCHOME}/bin:${PATH}
-
 # Clear Old Files
 
 rm -rf repository/*
-rm -rf packages/com.trumpton.base/data/*
-rm -rf packages/com.trumpton.base.panomanager/data/*
-rm -rf packages/com.trumpton.base.vcredist/data/*
+rm -rf packages64/com.trumpton.base.panomanager64/data/*
+rm -rf packages32/com.trumpton.base.panomanager32/data/*
 
-# Transfer VC Redist Files
 
-mkdir -p packages/com.trumpton.base.vcredist/data/redist
-cp -f src/${VCREDIST} packages/com.trumpton.base.vcredist/data/redist
 
-# Transfer Executable
 
-mkdir -p packages/com.trumpton.base.${REPONAME}/data/bin
-cp -f ${SOURCEEXE} packages/com.trumpton.base.${REPONAME}/data/bin
+# Transfer 64-bit Executable
 
-# Fetch Executable support DLLs
+mkdir -p packages64/com.trumpton.base.panomanager64/data/bin
+cp -f ${SOURCE64EXE} packages64/com.trumpton.base.panomanager64/data/bin
 
-(cd packages/com.trumpton.base.${REPONAME}/data/bin; windeployqt.exe ${APPNAME}.exe)
+# Fetch 64-bit Executable support DLLs
 
-# Generate offline installer
+(cd packages64/com.trumpton.base.panomanager64/data/bin; ${QT64HOME}/bin/windeployqt.exe ${APPNAME}.exe)
 
-binarycreator.exe --offline-only -p packages -c config/config-win${PROCBIT}-${QTVERSION}.xml repository/${APPNAME}OfflineInstaller.exe
+# Generate 64-bit offline installer
 
-# Generate online installer
+${QTINST}/bin/binarycreator.exe --offline-only -p packages64 -c config/config-win64-${QTVERSION}.xml repository/${APPNAME}OfflineInstaller64.exe
 
-binarycreator.exe --online-only -p packages -c config/config-win${PROCBIT}-${QTVERSION}.xml repository/${APPNAME}Installer.exe
+# Generate online 64-bit installer
 
-# Generate online packages
+${QTINST}/bin/binarycreator.exe --online-only -p packages64 -c config/config-win64-${QTVERSION}.xml repository/${APPNAME}Installer64.exe
 
-repogen.exe -p packages repository/${REPONAME}-win${PROCBIT}-${QTVERSION}
+# Generate online 64-bit packages
 
+${QTINST}/bin/repogen.exe -p packages64 repository/${REPONAME}-win64-${QTVERSION}
+
+
+
+
+
+# Transfer 32-bit Executable
+
+mkdir -p packages32/com.trumpton.base.panomanager32/data/bin
+cp -f ${SOURCE32EXE} packages32/com.trumpton.base.panomanager32/data/bin
+
+# Fetch 32-bit Executable support DLLs
+
+(cd packages32/com.trumpton.base.panomanager32/data/bin; ${QT32HOME}/bin/windeployqt.exe ${APPNAME}.exe)
+
+# Generate 32-bit offline installer
+
+${QTINST}/bin/binarycreator.exe --offline-only -p packages32 -c config/config-win32-${QTVERSION}.xml repository/${APPNAME}OfflineInstaller32.exe
+
+# Generate online 32-bit installer
+
+${QTINST}/bin/binarycreator.exe --online-only -p packages32 -c config/config-win32-${QTVERSION}.xml repository/${APPNAME}Installer32.exe
+
+# Generate online 32-bit packages
+
+${QTINST}/bin/repogen.exe -p packages32 repository/${REPONAME}-win32-${QTVERSION}
 

@@ -16,30 +16,28 @@ REPONAME=panomanager
 #
 
 QTVERSION=5.10.1
-
-PROCBIT=64
-
-#BUILDENV=mingw53_32
-#BUILDENV=msvc2015
-BUILDENV=msvc2015_64
-
+QTUVERSION=5_10_1
 QTIFWVER=QtIFW-3.0.4
 
-#VCREDIST=vcredist_msvc2015_x86.exe
-VCREDIST=vcredist_msvc2015_x64.exe
+BUILDENV32=msvc2015
+BUILDENV64=msvc2015_64
 
 #
 # Paths to EXE File
 #
 
-SOURCEEXE=../buildDesktop_Qt_${QTUVERSION}_MSVC2015_64bit2-Release/build/release/${APPNAME}.exe
+SOURCE64EXE=../buildDesktop_Qt_${QTUVERSION}_MSVC2015_64bit2-Release/build/release/${APPNAME}.exe
+SOURCE32EXE=../buildDesktop_Qt_${QTUVERSION}_MSVC2015_32bit-Release/build/release/${APPNAME}.exe
+
 
 #
 # Path to QT Files
 #
 
-QTHOME=/c/Qt/${QTVERSION}/${BUILDENV}
-QTINST=/c/Qt/${QTIFWVER}
+QT32HOME=/d/Qt/${QTVERSION}/${BUILDENV32}
+QT64HOME=/d/Qt/${QTVERSION}/${BUILDENV64}
+QTINST=/d/Qt/${QTIFWVER}
 VCFILE=src/${VCREDIST}
-GCCHOME=/c/Qt/Tools/mingw530_32
+
+
 

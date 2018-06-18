@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>Microsoft Visual C Redistributable</DisplayName>
+    <Description>Microsoft Visual C 64-bit 2015 Redistributable (RC3)</Description>
+    <Version>14.0.24212.0</Version>
+    <ReleaseDate>2016-07-21</ReleaseDate>
+    <Default>false</Default>
+    <Script>installscript.js</Script>
+</Package>
+
