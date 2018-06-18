@@ -12,9 +12,9 @@ source ./buildvars.inc
 
 # Clear Old Files
 
-rm -rf repository/*
-rm -rf packages64/com.trumpton.base.panomanager64/data/*
-rm -rf packages32/com.trumpton.base.panomanager32/data/*
+rm -rf repository/p* repository/P*
+rm -rf packages64/com.trumpton.base.panomanager64/data/bin
+rm -rf packages32/com.trumpton.base.panomanager32/data/bin
 
 
 
