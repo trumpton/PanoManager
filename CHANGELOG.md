@@ -1,5 +1,10 @@
 #Change Log
 
+## Update Version 0.3
+
+Fixes:
+* Class copy constructors / memory leaks
+
 ## Update Version 0.2
 
 New Features:
