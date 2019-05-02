@@ -32,6 +32,29 @@ Node::~Node()
 {
 }
 
+Node::Node(const Node& rhs)
+{
+    *this = rhs ;
+}
+
+Node& Node::operator=(const Node& rhs)
+{
+    m_invalid = rhs.m_invalid ;
+    m_dirty = rhs.m_dirty ;
+    m_empty = rhs.m_empty ;
+    m_id = rhs.m_id ;
+    m_type = rhs.m_type ;
+    m_lat = rhs.m_lat ;
+    m_lon = rhs.m_lon ;
+    m_title = rhs.m_title ;
+    m_description = rhs.m_description ;
+    m_destId = rhs.m_destId ;
+    m_url = rhs.m_url ;
+    m_arrivalLat = rhs.m_arrivalLat ;
+    m_arrivalLon = rhs.m_arrivalLon ;
+    return *this ;
+}
+
 Icon::IconType Node::type()
 {
     return m_type ;

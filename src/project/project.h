@@ -46,6 +46,11 @@ public:
     Project();
     ~Project() ;
 
+private:
+    Project(const Project& other) ;
+    Project& operator=(const Project& rhs) ;
+
+public:
     void clear() ;
 
     bool OpenProject(QString path) ;

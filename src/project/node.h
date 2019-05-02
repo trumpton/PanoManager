@@ -41,7 +41,10 @@ private:
 public:
     Node(bool isinvalid=false);
     ~Node() ;
+    Node(const Node& rhs) ;
+    Node& operator=(const Node& rhs) ;
 
+public:
     Icon::IconType type() ;
     int lat() ;
     int lon() ;

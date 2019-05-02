@@ -28,7 +28,6 @@
 #include "../errors/pmerrors.h"
 
 typedef struct {
-
     char face ;                  // Cubemap destination face (-1 on error)
     unsigned short dstx, dsty ;  // Cubemap destination face coordinates
     unsigned short srcx ;        // equirectangular x coordinate: srcx + remx/100
@@ -72,6 +71,12 @@ private:
 
 public:
     MapTranslation();
+
+private:
+    MapTranslation(MapTranslation &other) ;
+    MapTranslation& operator=(const MapTranslation &rhs) ;
+
+public:
 
     int srcx() ;
     int srcy() ;

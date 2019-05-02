@@ -40,7 +40,10 @@ class Scene
   public:
     Scene(bool isinvalid=false);
     ~Scene() ;
+    Scene(const Scene& rhs) ;
+    Scene& operator=(const Scene& rhs) ;
 
+public:
     int northOffset() ;
     QString title() ;
     QString id() ;

@@ -40,6 +40,11 @@ public:
     explicit Face(const QImage& img) ;
     ~Face() ;
 
+private:
+    Face(const Face& other) ;
+    Face& operator=(Face& rhs) ;
+
+public:
     // Release memory
     void clear() ;
 

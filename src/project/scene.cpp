@@ -32,6 +32,26 @@ Scene::~Scene()
 {
 }
 
+Scene::Scene(const Scene& rhs)
+{
+    *this = rhs ;
+}
+
+Scene& Scene::operator=(const Scene& rhs)
+{
+    m_invalid = rhs.m_invalid ;
+    m_empty = rhs.m_empty ;
+    m_dirty = rhs.m_dirty ;
+    m_northOffset = rhs.m_northOffset ;
+    m_filename = rhs.m_filename ;
+    m_title = rhs.m_title ;
+    m_id = rhs.m_id ;
+    m_nodes = rhs.m_nodes ;
+    m_invalidnode = rhs.m_invalidnode ;
+    return *this ;
+}
+
+
 int Scene::northOffset()
 {
     return m_northOffset ;

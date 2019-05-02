@@ -49,6 +49,12 @@ private:
 
 public:
     SceneImage();
+
+private:
+    SceneImage(const SceneImage& other) ;
+    SceneImage& operator=(const SceneImage &rhs) ;
+
+public:
     void clear() ;
     bool facesExist(QString imagefile) ;
     bool previewExists(QString imagefile) ;
