@@ -1,9 +1,13 @@
 #Change Log
 
-## Update Version 0.3
+## Update Version 1.0.1 (02 May 2019)
 
 Fixes:
 * Class copy constructors / memory leaks
+
+## Release 1.0.0 (17 June 2018)
+
+First formal Release
 
 ## Update Version 0.2
 
