@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>Pano Manager Pannellum Library Files</DisplayName>
+    <Description>Pannellum Library Files</Description>
+    <Version>2.4.0</Version>
+    <ReleaseDate>2018-01-31</ReleaseDate>
+    <Default>true</Default>
+    <Script>installscript.js</Script>
+</Package>
+

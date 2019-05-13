@@ -1,0 +1,5 @@
+
+function Component()
+{
+    // default constructor
+}

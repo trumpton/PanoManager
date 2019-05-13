@@ -2,8 +2,8 @@
 <Package>
     <DisplayName>Pano Manager Application</DisplayName>
     <Description>Panorama Manager</Description>
-    <Version>1.0.0</Version>
-    <ReleaseDate>2018-06-15</ReleaseDate>
+    <Version>1.0.1</Version>
+    <ReleaseDate>2018-05-13</ReleaseDate>
     <Default>true</Default>
     <Script>installscript.js</Script>
 </Package>

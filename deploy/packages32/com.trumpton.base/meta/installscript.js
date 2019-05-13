@@ -12,7 +12,7 @@ Component.prototype.createOperations = function()
 		"@TargetDir@/maintenancetool.exe", 
 		"@StartMenuDir@/PanoManagerMaintenanceTool.lnk",
             	"workingDirectory=@TargetDir@", 
-		"iconPath=@TargetDir@/bin/PanoManager.exe",
+		"iconPath=@TargetDir@/maintenancetool.exe",
             	"iconId=1", "description=Uninstall / Modify Panorama Manager");
     }
 }

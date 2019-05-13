@@ -13,11 +13,28 @@ source ./buildvars.inc
 # Clear Old Files
 
 rm -rf repository/p* repository/P*
+
 rm -rf packages64/com.trumpton.base.panomanager64/data/bin
+rm -rf packages64/com.trumpton.base.panomanager64.marzipano/data/lib
+rm -rf packages64/com.trumpton.base.panomanager64.pannellum/data/lib
+
 rm -rf packages32/com.trumpton.base.panomanager32/data/bin
+rm -rf packages32/com.trumpton.base.panomanager32.marzipano/data/lib
+rm -rf packages32/com.trumpton.base.panomanager32.pannellum/data/lib
 
+# Transfer Marzipano Files
 
+mkdir -p packages32/com.trumpton.base.panomanager32.marzipano/data/lib/PanoManager/marzipano
+mkdir -p packages64/com.trumpton.base.panomanager64.marzipano/data/lib/PanoManager/marzipano
+cp -R ../lib/PanoManager packages32/com.trumpton.base.panomanager32.marzipano/data/lib
+cp -R ../lib/PanoManager packages64/com.trumpton.base.panomanager64.marzipano/data/lib
 
+# Transfer Pannellum Files
+
+mkdir -p packages32/com.trumpton.base.panomanager32.pannellum/data/lib/PanoManager/pannellum
+mkdir -p packages64/com.trumpton.base.panomanager64.pannellum/data/lib/PanoManager/pannellum
+cp -R ../lib/PanoManager packages32/com.trumpton.base.panomanager32.pannellum/data/lib
+cp -R ../lib/PanoManager packages64/com.trumpton.base.panomanager64.pannellum/data/lib
 
 # Transfer 64-bit Executable
 
