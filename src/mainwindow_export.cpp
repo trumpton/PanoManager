@@ -140,7 +140,7 @@ void MainWindow::on_action_ExportMarzipano_triggered()
 
             QJsonObject jo_node ;
             jo_node.insert("yaw", (node.lon() * 3.141592654*2)/360000) ;
-            jo_node.insert("pitch", (node.lat() * 3.141592654)/180000) ;
+            jo_node.insert("pitch", ((node.lat() * 3.141592654)/180000) * -1) ;
             jo_node.insert("icon", QString("pmicons/") + Icon::uprightIconName(node.type()) + QString(".png")) ;
             jo_node.insert("rotation", (Icon::textureOrientation(node.type())*3.141592654*2)/360) ;
             jo_node.insert("title", node.title()) ;
