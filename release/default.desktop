@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Pano Manager
+Exec=AppRun %F
+Icon=default
+Comment=Panorama Manager
+Categories=Utility;
+Terminal=true

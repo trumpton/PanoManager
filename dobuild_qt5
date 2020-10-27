@@ -1,0 +1,5 @@
+/bin/rm -rf build
+mkdir build
+cd build
+/usr/lib/qt5/bin/qmake -o Makefile ../src/PanoManager.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug
+make
