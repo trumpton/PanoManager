@@ -1,0 +1,18 @@
+#
+# doappimage_package
+#
+# This script relies on the linuxdeployqt application being somewhere
+# in the PATH.
+#
+# Note that if the operating system is too new, the linuxdeployqt will refuse
+# to work.  A workaround is to use the -unsupported-allow-new-glibc switch.
+#
+
+rm -rf release/bin
+mkdir release/bin
+cd release
+cp ../build/*/*/PanoManager bin
+cp -R ../lib .
+ln -s bin/PanoManager PanoManager
+
+linuxdeployqt PanoManager -qmake=/usr/lib/qt5/bin/qmake -unsupported-allow-new-glibc -appimage
