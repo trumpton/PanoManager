@@ -47,7 +47,7 @@ The PanoManager program is provided without warranty.  I am not a software engin
 
 ## Thankyou
 
-If you want to say thankyou for the program, please consider making a donation to Guide Dogs for the Blind here: https://www.justgiving.com/fundraising/panomanager18
+If you want to say thankyou for the program, please consider making a donation to Guide Dogs for the Blind here: http://www.vizier.uk/guidedogs
 
 ## Author
 
